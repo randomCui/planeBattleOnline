@@ -9,16 +9,16 @@ def get_input_vector_keyboard():
     x=0
     y=0
     if keys[pygame.K_LEFT]:
-        x -= sensitivity
+        x -= 0.05
 
     if keys[pygame.K_RIGHT]:
-        x += sensitivity
+        x += 0.05
 
     if keys[pygame.K_UP]:
-        y -= sensitivity
+        y -= 0.05
 
     if keys[pygame.K_DOWN]:
-        y += sensitivity
+        y += 0.05
 
     toggle_mouse_control_delay -= 1
     if toggle_mouse_control_delay < 0:
@@ -39,7 +39,7 @@ def get_input_vector_mouse(plane_pos):
 
 
 def mouse_move_vector_adjust(vector):
-    a_vector = (vector[0]/window_width)*sensitivity,(vector[1]/window_height)*sensitivity
+    a_vector = (vector[0]/window_width),(vector[1]/window_height)
     return a_vector
 
 

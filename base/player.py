@@ -1,9 +1,10 @@
 import pygame
 from plane import Plane
+from math import pow, sqrt
 
 
 class Player(Plane):
-    def __init__(self, x,y, vx,vy,texture,**properties):
+    def __init__(self, x,y,texture,**properties):
         """
         初始化玩家对象
 
@@ -19,12 +20,33 @@ class Player(Plane):
             setattr(self,key,value)
         super().init_texture(self.texture)
 
+        self.speed = 0
+
     def change_pos(self, vector):
-        self.x+=vector[0]
-        self.y+=vector[1]
+        self.normalize_move_vector(vector)
 
     def get_pos(self):
         return self.x,self.y
+
+    def normalize_move_vector(self,vector):
+        if vector == (0,0):
+            return
+        hypotenuse = sqrt(pow(vector[0]+self.vx, 2) + pow(vector[1]+self.vy, 2))
+        self.vx = vector[0]+self.vx / hypotenuse
+        self.vy = vector[1]+self.vy / hypotenuse
+
+        print(hypotenuse)
+        assert hasattr(self,'max_speed')
+        new_speed = hypotenuse
+        if new_speed > self.max_speed:
+            self.speed = self.max_speed
+        else:
+            self.speed = new_speed
+
+
+    def update(self):
+        self.x += self.speed * self.vx
+        self.y += self.speed * self.vy
 
     def draw_self(self, window):
         super(Player, self).draw_self(window)
