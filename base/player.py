@@ -60,3 +60,11 @@ class Player(Plane):
 
     def draw_self(self, window):
         super(Player, self).draw_self(window)
+
+    def get_pos(self):
+        return self.x,self.y
+
+    def set_pos(self,pos):
+        self.x = pos[0]
+        self.y = pos[1]
+

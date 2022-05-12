@@ -1,14 +1,13 @@
 import socket
 import threading
 import pickle
-from game import Game
+from base.game import Game
 from base.player import Player
-from client.config import window_width,window_height
+from client.config import window_height
 
 
-def client_thread(connection, game_id):
-    global idCount
-    player_attr = pickle.loads(connection.recv(2048*10))
+def client_thread(connection, game_id, player_id):
+    player_attr = pickle.loads(connection.recv(2048))
     width=player_attr['size'][0]
     height = player_attr['size'][1]
     player = Player(100,
@@ -17,26 +16,20 @@ def client_thread(connection, game_id):
                     height,
                     player_attr
                     )
-    connection.sendall(pickle.dumps(player))
-    reply = []
+
+    connection.send(pickle.dumps(
+        (player_id, player)
+    ))
+    games[game_id].players[player_id] = player
+    current_game = games[game_id]
+    current_player = current_game.players[player_id]
     while True:
         try:
-            data = pickle.loads(connection.recv(2048*10))
-            if game_id in games:
-                game = games[game_id]
-            else:
-                break
-
+            data = pickle.loads(connection.recv(2048))
+            current_player.set_pos(data['pos'])
+            connection.send(pickle.dumps(current_game))
             if not data:
                 break
-            else:
-                if data == "reset":
-                    game.resetWent()
-                elif data != "get":
-                    game.play(player_id, data)
-
-                connection.sendall(pickle.dumps(game))
-
         except:
             break
 
@@ -46,7 +39,6 @@ def client_thread(connection, game_id):
         print("Closing Game", game_id)
     except:
         pass
-    idCount -= 1
     connection.close()
 
 
@@ -62,7 +54,7 @@ def init_server(server, port):
 
 if __name__=='__main__':
     server = "localhost"
-    port = 5556
+    port = 5559
 
     s = init_server(server,port)
     print("Waiting for a connection, Server Started")
@@ -80,7 +72,8 @@ if __name__=='__main__':
         conn, address = s.accept()
         print("Connected to:", address)
         idCount += 1
-        game_id = 1
-        games[game_id] = Game(game_id)
+        game_id = 'default'
+        if game_id not in games:
+            games[game_id] = Game(game_id)
         print("Creating a new game...")
-        threading.Thread(target=client_thread,args=(conn,game_id)).start()
+        threading.Thread(target=client_thread,args=(conn,game_id,address[1])).start()
