@@ -6,6 +6,7 @@ from input_handle import get_input
 
 from config import window_height as height
 from config import window_width as width
+from network import Network
 
 # width = 500
 # height = 500
@@ -23,9 +24,18 @@ def redraw_window(win,player):
 
 if __name__ == '__main__':
     YELLOW_SPACE_SHIP = pygame.image.load(os.path.join("..", "assets", "pixel_ship_yellow.png"))
+    n = Network(
+        ip='localhost',
+        port=5556,
+        size=(YELLOW_SPACE_SHIP.get_size()),
+        max_speed=3
+    )
+    YELLOW_SPACE_SHIP = pygame.image.load(os.path.join("..", "assets", "pixel_ship_yellow.png"))
     run = True
-    p = Player(0,0,YELLOW_SPACE_SHIP,
-               max_speed=5)
+    p = n.get_local_player()
+    p.init_texture(YELLOW_SPACE_SHIP)
+
+
     clock = pygame.time.Clock()
 
     while run:
