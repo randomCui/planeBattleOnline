@@ -24,7 +24,8 @@ def redraw_window(win,player):
 if __name__ == '__main__':
     YELLOW_SPACE_SHIP = pygame.image.load(os.path.join("..", "assets", "pixel_ship_yellow.png"))
     run = True
-    p = Player(0,0,0,0,YELLOW_SPACE_SHIP)
+    p = Player(0,0,YELLOW_SPACE_SHIP,
+               max_speed=5)
     clock = pygame.time.Clock()
 
     while run:
@@ -33,7 +34,10 @@ if __name__ == '__main__':
             if event.type == pygame.QUIT:
                 run = False
                 pygame.quit()
-
-        p.change_pos(get_input(p.get_pos()))
+        new_pos, need_dumper = get_input(p.get_center())
+        p.change_pos(new_pos)
+        if need_dumper:
+            p.dumper_once()
+        p.update()
         redraw_window(win, p)
 

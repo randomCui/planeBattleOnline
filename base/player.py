@@ -4,6 +4,7 @@ from math import pow, sqrt
 
 
 class Player(Plane):
+    dumper_factor = 0.95
     def __init__(self, x,y,texture,**properties):
         """
         初始化玩家对象
@@ -20,33 +21,37 @@ class Player(Plane):
             setattr(self,key,value)
         super().init_texture(self.texture)
 
-        self.speed = 0
-
     def change_pos(self, vector):
         self.normalize_move_vector(vector)
 
     def get_pos(self):
         return self.x,self.y
 
+    def get_center(self):
+        return self.x+self.width/2,self.y+self.height/2
+
+    def set_speed_vector(self,vector):
+        self.vx = vector[0]
+        self.vy = vector[1]
+
     def normalize_move_vector(self,vector):
         if vector == (0,0):
             return
         hypotenuse = sqrt(pow(vector[0]+self.vx, 2) + pow(vector[1]+self.vy, 2))
-        self.vx = vector[0]+self.vx / hypotenuse
-        self.vy = vector[1]+self.vy / hypotenuse
+        self.vx += vector[0]
+        self.vy += vector[1]
+        # 如果斜边过大，说明物体运动超速了，需要限制飞机的运动速度
+        if hypotenuse > self.max_speed:
+            self.vx *= (self.max_speed/hypotenuse)
+            self.vy *= (self.max_speed/hypotenuse)
 
-        print(hypotenuse)
-        assert hasattr(self,'max_speed')
-        new_speed = hypotenuse
-        if new_speed > self.max_speed:
-            self.speed = self.max_speed
-        else:
-            self.speed = new_speed
-
+    def dumper_once(self):
+        self.vx *= self.dumper_factor
+        self.vy *= self.dumper_factor
 
     def update(self):
-        self.x += self.speed * self.vx
-        self.y += self.speed * self.vy
+        self.x +=self.vx
+        self.y +=self.vy
 
     def draw_self(self, window):
         super(Player, self).draw_self(window)

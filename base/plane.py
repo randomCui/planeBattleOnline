@@ -17,6 +17,8 @@ class Plane:
     def init_texture(self, texture):
         if texture is not None:
             self.texture = texture
+            self.height = texture.get_height()
+            self.width = texture.get_width()
         else:
             raise ValueError("Texture cannot be None")
 
