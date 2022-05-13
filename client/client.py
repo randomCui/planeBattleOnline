@@ -32,14 +32,16 @@ if __name__ == '__main__':
     # 初始化网络连接
     n = Network(
         ip='localhost',
-        port=5561,
+        port=44011,
     )
 
     # 向服务器发送本客户端的飞机信息
     n.init_player(
-        size=(t.lib['YELLOW_SPACE_SHIP'].get_size()),
-        max_speed=3,
-        texture_name='YELLOW_SPACE_SHIP',
+        inertia_setting={
+        'size':(t.lib['YELLOW_SPACE_SHIP'].get_size()),
+        'max_speed':3,
+        'texture_name':'YELLOW_SPACE_SHIP'
+        },
     )
 
     # 从服务器拿到本客户端的玩家ID和飞机对象

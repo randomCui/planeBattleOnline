@@ -2,7 +2,7 @@ from plane import Plane
 
 
 class Player(Plane):
-    def __init__(self, x, y, width, height, properties={}):
+    def __init__(self, x, y, width, height, **properties):
         """
         初始化玩家对象
 
@@ -12,4 +12,7 @@ class Player(Plane):
         :param height: 初始时对象的高度
         :param properties: 其余玩家对象需要的各种属性，例如生命值，技能量等
         """
-        super().__init__(x, y, width, height, properties)
+        super().__init__(x, y, width, height,
+                         inertia_setting=properties['inertia_setting'],
+                         plane_setting=properties['plane_setting'],
+                         )
