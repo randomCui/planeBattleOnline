@@ -1,6 +1,7 @@
+import pickle
 import socket
 import threading
-import pickle
+
 from base.game import Game
 from base.player import Player
 from client.config import window_height
@@ -8,10 +9,10 @@ from client.config import window_height
 
 def client_thread(connection, game_id, player_id):
     player_attr = pickle.loads(connection.recv(2048))
-    width=player_attr['size'][0]
+    width = player_attr['size'][0]
     height = player_attr['size'][1]
     player = Player(100,
-                    window_height-100,
+                    window_height - 100,
                     width,
                     height,
                     player_attr
@@ -30,15 +31,15 @@ def client_thread(connection, game_id, player_id):
             connection.send(pickle.dumps(current_game))
             if not data:
                 break
-        except:
-            break
+        except Exception as e:
+            print(e)
 
     print("Lost connection")
     try:
         del games[game_id]
         print("Closing Game", game_id)
-    except:
-        pass
+    except Exception as e:
+        print(e)
     connection.close()
 
 
@@ -52,11 +53,11 @@ def init_server(server, port):
     return s
 
 
-if __name__=='__main__':
+if __name__ == '__main__':
     server = "localhost"
-    port = 5559
+    port = 5561
 
-    s = init_server(server,port)
+    s = init_server(server, port)
     print("Waiting for a connection, Server Started")
 
     # 服务器的所有网络连接
@@ -76,4 +77,4 @@ if __name__=='__main__':
         if game_id not in games:
             games[game_id] = Game(game_id)
         print("Creating a new game...")
-        threading.Thread(target=client_thread,args=(conn,game_id,address[1])).start()
+        threading.Thread(target=client_thread, args=(conn, game_id, address[1])).start()

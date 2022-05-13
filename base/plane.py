@@ -1,6 +1,7 @@
-import pygame
 import sys
+
 sys.path.append('/')
+
 
 class Plane:
     def __init__(self, x, y, vx=0, vy=0):
@@ -39,4 +40,4 @@ class Plane:
 
         :return: 游戏对象的字符串
         """
-        return format("Pos:(%.2f)(%2.f),Vector:(%.2f)(%.2f)"%(self.x,self.y,self.vx,self.vy))
+        return format("Pos:(%.2f)(%2.f),Vector:(%.2f)(%.2f)" % (self.x, self.y, self.vx, self.vy))

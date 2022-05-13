@@ -50,7 +50,7 @@ class Player(Plane):
             self.vx *= (self.max_speed / hypotenuse)
             self.vy *= (self.max_speed / hypotenuse)
 
-    def dumper_once(self):
+    def damping(self):
         self.vx *= self.dumper_factor
         self.vy *= self.dumper_factor
 
