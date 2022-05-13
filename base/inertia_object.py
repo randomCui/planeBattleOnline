@@ -6,7 +6,7 @@ from math import pow, sqrt
 class InertiaObject(GameObject):
     dumper_factor = 0.95
 
-    def __init__(self, x, y, width, height, **properties):
+    def __init__(self, **properties):
         """
         初始化飞机对象
 
@@ -16,11 +16,9 @@ class InertiaObject(GameObject):
         :param height: 初始时对象的高度
         :param properties: 其余玩家对象需要的各种属性，例如生命值，技能量等
         """
-        super().__init__(x, y, basic_setting=properties['basic_setting'])
+        super().__init__(basic_setting=properties['basic_setting'])
         for key, value in properties['inertia_setting'].items():
             setattr(self, key, value)
-        self.height = height
-        self.width = width
 
     def init_texture(self, texture):
         super().init_texture(texture)
