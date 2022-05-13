@@ -41,4 +41,7 @@ class Network:
             print(e)
 
     def receive(self):
-        return pickle.loads(self.client.recv(2048))
+        return pickle.loads(self.client.recv(2048*10))
+
+    def disconnect(self):
+        self.client.close()

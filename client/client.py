@@ -2,14 +2,16 @@ import pygame
 import sys
 
 # 为了导入其他目录的模块，需要先将其他目录的路径加入环境变量中
+sys.path.append('..')
 sys.path.append('../base')
 sys.path.append('../server')
 
 from input_handle import get_input
-from texture import Texture
+from base.texture import Texture
 from config import window_height as height
 from config import window_width as width
 from network import Network
+from config import ip,port
 
 # width = 500
 # height = 500
@@ -18,21 +20,32 @@ pygame.display.set_caption("Client")
 
 clientNumber = 0
 
-
-def redraw_window(window, players):
+def redraw(window, game):
     window.fill((255, 255, 255))
+    redraw_players(window, game.players)
+    redraw_enemies(window, game.enemies)
+
+    pygame.display.update()
+
+
+def redraw_enemies(window, enemies):
+    for enemy in enemies:
+        enemy.init_texture(t.lib[enemy.texture_name])
+        enemy.draw_self(window)
+
+
+def redraw_players(window, players):
     for p_id, player in players.items():
         player.init_texture(t.lib[player.texture_name])
         player.draw_self(window)
-    pygame.display.update()
 
 
 if __name__ == '__main__':
     t = Texture()
     # 初始化网络连接
     n = Network(
-        ip='localhost',
-        port=44013,
+        ip=ip,
+        port=port,
     )
 
     # 向服务器发送本客户端的飞机信息
@@ -42,7 +55,7 @@ if __name__ == '__main__':
             'texture_name': 'YELLOW_SPACE_SHIP'
         },
         inertia_setting={
-            'max_speed':3,
+            'max_speed': 8,
         },
         plane_setting={
 
@@ -62,6 +75,7 @@ if __name__ == '__main__':
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 run = False
+                n.disconnect()
                 pygame.quit()
         # 由本地输入得到飞机移动的向量 和 飞机是否靠近鼠标位置
         target_position, is_damping_activate = get_input(p.get_center())
@@ -85,4 +99,4 @@ if __name__ == '__main__':
         reply = n.receive()
 
         # 客户端根据更新的情况，对画面进行更新
-        redraw_window(win, reply.players)
+        redraw(win, reply)
