@@ -1,14 +1,16 @@
 class GameObject:
-    def __init__(self, x, y, vx=0, vy=0):
+    def __init__(self, x, y, **properties):
         self.x = x
         self.y = y
-        self.vx = vx
-        self.vy = vy
+        self.vx = 0
+        self.vy = 0
         # 设置生命值，移动速度等等内容
         self.width = 0
         self.height = 0
         self.rect = None
         self.texture = None
+        for key, value in properties['basic_setting'].items():
+            setattr(self, key, value)
 
     def init_texture(self, texture):
         if texture is not None:

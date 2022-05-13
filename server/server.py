@@ -9,14 +9,15 @@ from client.config import window_height
 
 def client_thread(connection, game_id, player_id):
     player_attr = pickle.loads(connection.recv(2048))
-    width = player_attr['inertia_setting']['size'][0]
-    height = player_attr['inertia_setting']['size'][1]
+    width = player_attr['basic_setting']['size'][0]
+    height = player_attr['basic_setting']['size'][1]
     player = Player(100,
                     window_height - 100,
                     width,
                     height,
+                    basic_setting=player_attr['basic_setting'],
                     inertia_setting=player_attr['inertia_setting'],
-                    plane_setting={}
+                    plane_setting=player_attr['plane_setting'],
                     )
 
     connection.send(pickle.dumps(
@@ -56,7 +57,7 @@ def init_server(server, port):
 
 if __name__ == '__main__':
     server = "localhost"
-    port = 44011
+    port = 44013
 
     s = init_server(server, port)
     print("Waiting for a connection, Server Started")

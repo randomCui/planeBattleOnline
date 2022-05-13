@@ -13,6 +13,7 @@ class Player(Plane):
         :param properties: 其余玩家对象需要的各种属性，例如生命值，技能量等
         """
         super().__init__(x, y, width, height,
+                         basic_setting=properties['basic_setting'],
                          inertia_setting=properties['inertia_setting'],
                          plane_setting=properties['plane_setting'],
                          )

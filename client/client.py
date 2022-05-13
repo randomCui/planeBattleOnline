@@ -32,15 +32,20 @@ if __name__ == '__main__':
     # 初始化网络连接
     n = Network(
         ip='localhost',
-        port=44011,
+        port=44013,
     )
 
     # 向服务器发送本客户端的飞机信息
     n.init_player(
+        basic_setting={
+            'size': (t.lib['YELLOW_SPACE_SHIP'].get_size()),
+            'texture_name': 'YELLOW_SPACE_SHIP'
+        },
         inertia_setting={
-        'size':(t.lib['YELLOW_SPACE_SHIP'].get_size()),
-        'max_speed':3,
-        'texture_name':'YELLOW_SPACE_SHIP'
+            'max_speed':3,
+        },
+        plane_setting={
+
         },
     )
 

@@ -16,8 +16,7 @@ class InertiaObject(GameObject):
         :param height: 初始时对象的高度
         :param properties: 其余玩家对象需要的各种属性，例如生命值，技能量等
         """
-        super().__init__(x, y)
-        self.texture = None
+        super().__init__(x, y, basic_setting=properties['basic_setting'])
         for key, value in properties['inertia_setting'].items():
             setattr(self, key, value)
         self.height = height
