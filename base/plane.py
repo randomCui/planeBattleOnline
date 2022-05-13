@@ -1,43 +1,69 @@
-import sys
+import pygame
+from game_object import GameObject
+from math import pow, sqrt
 
-sys.path.append('/')
 
+class Plane(GameObject):
+    dumper_factor = 0.95
 
-class Plane:
-    def __init__(self, x, y, vx=0, vy=0):
-        self.x = x
-        self.y = y
-        self.vx = vx
-        self.vy = vy
-        # 设置生命值，移动速度等等内容
-        self.width = 0
-        self.height = 0
-        self.rect = None
+    def __init__(self, x, y, width, height, properties={}):
+        """
+        初始化飞机对象
+
+        :param x: 初始时对象的x位置
+        :param y: 初始时对象的y位置
+        :param vx: 初始时对象的x方向速度
+        :param vy: 初始时对象的y方向速度
+        :param properties: 其余玩家对象需要的各种属性，例如生命值，技能量等
+        """
+        super().__init__(x, y)
         self.texture = None
+        for key, value in properties.items():
+            setattr(self, key, value)
+        self.height = height
+        self.width = width
 
     def init_texture(self, texture):
-        if texture is not None:
-            self.texture = texture
-            self.height = texture.get_height()
-            self.width = texture.get_width()
-        else:
-            raise ValueError("Texture cannot be None")
+        super().init_texture(texture)
+
+    def change_pos(self, vector):
+        self.normalize_move_vector(vector)
+
+    def get_pos(self):
+        return self.x, self.y
+
+    def get_center(self):
+        return self.x + self.width / 2, self.y + self.height / 2
+
+    def set_speed_vector(self, vector):
+        self.vx = vector[0]
+        self.vy = vector[1]
+
+    def normalize_move_vector(self, vector):
+        if vector == (0, 0):
+            return
+        hypotenuse = sqrt(pow(vector[0] + self.vx, 2) + pow(vector[1] + self.vy, 2))
+        self.vx += vector[0]
+        self.vy += vector[1]
+        # 如果斜边过大，说明物体运动超速了，需要限制飞机的运动速度
+        if hypotenuse > self.max_speed:
+            self.vx *= (self.max_speed / hypotenuse)
+            self.vy *= (self.max_speed / hypotenuse)
+
+    def damping(self):
+        self.vx *= self.dumper_factor
+        self.vy *= self.dumper_factor
+
+    def update(self):
+        self.x += self.vx
+        self.y += self.vy
 
     def draw_self(self, window):
-        """
-        将游戏中的飞行物体直接画在对应的窗口中
+        super(Plane, self).draw_self(window)
 
-        :param window: 需要显示到的窗口
-        :return:
-        """
-        # 假设在显示图形之前图像已经被初始化完成
-        assert self.texture is not None
-        window.blit(self.texture, (self.x, self.y))
+    def get_pos(self):
+        return self.x,self.y
 
-    def __str__(self):
-        """
-        将游戏对象状态转为字符串，便于调试
-
-        :return: 游戏对象的字符串
-        """
-        return format("Pos:(%.2f)(%2.f),Vector:(%.2f)(%.2f)" % (self.x, self.y, self.vx, self.vy))
+    def set_pos(self,pos):
+        self.x = pos[0]
+        self.y = pos[1]
