@@ -1,3 +1,6 @@
+import pygame
+
+
 class GameObject:
     def __init__(self, **properties):
         self.x = 0
@@ -13,8 +16,8 @@ class GameObject:
             setattr(self, key, value)
 
         assert self.size is not None
-        self.x = self.size[0]
-        self.y = self.size[1]
+        self.width = self.size[0]
+        self.height = self.size[1]
 
     def init_texture(self, texture):
         if texture is not None:

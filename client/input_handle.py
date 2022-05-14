@@ -1,7 +1,10 @@
-import pygame
-from config import sensitivity,window_width,window_height,toggle_mouse_control,toggle_mouse_control_delay
+import pygame,sys
+sys.path.append('../base')
+from base.config import window_width, window_height
 from math import sqrt, pow
 
+toggle_mouse_control = False
+toggle_mouse_control_delay = 0
 
 def get_input_vector_keyboard():
     global toggle_mouse_control

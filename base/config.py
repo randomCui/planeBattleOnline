@@ -1,5 +1,8 @@
-window_width = 500
-window_height = 500
+window_width = 600
+window_height = 750
+
+ip = 'localhost'
+port = 11451
 
 setting = {
     'easy': {
@@ -9,4 +12,8 @@ setting = {
             'enemy_2': 5,
         }
     }
+}
+
+client_specific = {
+
 }

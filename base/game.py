@@ -25,18 +25,24 @@ class Game:
         self.timer = {
             'enemy_spawn': 0
         }
+        self.random = random.Random()
+        self.random.seed(self.current_time)
 
-    def enemy_spawn(self):
+    def enemy_spawn(self, pos=(0,0), enemy_type=1):
         global t
+
+        # 随机生成一个敌机种类
+        # enemy_type = self.random.randint(1,2)
+        pos = self.random.randint(0, window_width-100), 30
+
         if self.timer['enemy_spawn'] > setting[self.difficult]['enemy_spawn_time']:
             # ch = random.randint(1, 2)
-            ch=1
             temp = None
-            if ch == 1:
+            if enemy_type == 1:
                 temp = EnemyType1(
                     basic_setting={
-                        'x': random.randint(0, window_width),
-                        'y': random.randint(0, window_height),
+                        'x': pos[0],
+                        'y': pos[1],
                         'size': t.lib['GREEN_SPACE_SHIP'].get_size(),
                         'texture_name': 'GREEN_SPACE_SHIP'
                     },
@@ -70,7 +76,9 @@ class Game:
             # 说明已经飞出屏幕
             if enemy.get_center()[1] > window_height+100:
                 self.enemies.remove(enemy)
-                print("移除enemy")
+
+    def collision_detection(self):
+        pass
 
     def update(self):
         self.update_timer()

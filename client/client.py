@@ -8,10 +8,10 @@ sys.path.append('../server')
 
 from input_handle import get_input
 from base.texture import Texture
-from config import window_height as height
-from config import window_width as width
+from base.config import window_height as height
+from base.config import window_width as width
 from network import Network
-from config import ip,port
+from base.config import ip,port
 
 # width = 500
 # height = 500
@@ -20,24 +20,29 @@ pygame.display.set_caption("Client")
 
 clientNumber = 0
 
+
 def redraw(window, game):
-    window.fill((255, 255, 255))
-    redraw_players(window, game.players)
-    redraw_enemies(window, game.enemies)
+    draw_background(window)
+    draw_players(window, game.players)
+    draw_enemies(window, game.enemies)
 
     pygame.display.update()
 
 
-def redraw_enemies(window, enemies):
+def draw_enemies(window, enemies):
     for enemy in enemies:
         enemy.init_texture(t.lib[enemy.texture_name])
         enemy.draw_self(window)
 
 
-def redraw_players(window, players):
+def draw_players(window, players):
     for p_id, player in players.items():
         player.init_texture(t.lib[player.texture_name])
         player.draw_self(window)
+
+
+def draw_background(window):
+    window.fill((60,63,65))
 
 
 if __name__ == '__main__':
