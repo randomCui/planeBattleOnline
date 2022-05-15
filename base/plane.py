@@ -28,3 +28,6 @@ class Plane(InertiaObject):
 
     def init_move(self, speed_vector):
         self.vx, self.vy = speed_vector
+
+    def shoot(self,**kwargs):
+        pass

@@ -7,7 +7,7 @@ sys.path.append('../base')
 sys.path.append('../server')
 
 from input_handle import get_input
-from base.texture import Texture
+from base.shared_lib import t
 from base.config import window_height as height
 from base.config import window_width as width
 from network import Network
@@ -25,8 +25,15 @@ def redraw(window, game):
     draw_background(window)
     draw_players(window, game.players)
     draw_enemies(window, game.enemies)
+    draw_hostile_bullets(window, game.hostile_bullets)
 
     pygame.display.update()
+
+
+def draw_hostile_bullets(window, bullets):
+    for bullet in bullets:
+        bullet.init_texture(t.lib[bullet.texture_name])
+        bullet.draw_self(window)
 
 
 def draw_enemies(window, enemies):
@@ -46,7 +53,6 @@ def draw_background(window):
 
 
 if __name__ == '__main__':
-    t = Texture()
     # 初始化网络连接
     n = Network(
         ip=ip,

@@ -1,6 +1,8 @@
 window_width = 600
 window_height = 750
 
+frame_rate = 60
+
 ip = 'localhost'
 port = 11451
 

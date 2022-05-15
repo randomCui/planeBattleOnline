@@ -5,10 +5,8 @@ import time
 
 from base.game import Game
 from base.player import Player
-from base.texture import Texture
+from base.shared_lib import t
 from base.config import window_height, ip, port
-
-t = Texture()
 
 
 def client_thread(connection, game_id, player_id):
@@ -31,7 +29,6 @@ def client_thread(connection, game_id, player_id):
         try:
             data = pickle.loads(connection.recv(2048*10))
             current_player.set_pos(data['pos'])
-            current_game.update()
             connection.send(pickle.dumps(current_game))
             if not data:
                 break
@@ -39,6 +36,9 @@ def client_thread(connection, game_id, player_id):
             del current_game.players[player_id]
             connection.close()
             break
+
+        except Exception as e:
+            raise e
 
     print("Lost connection")
     print("game %s has %d players" % (game_id,len(current_game.players)))
@@ -54,6 +54,12 @@ def client_thread(connection, game_id, player_id):
     connection.close()
 
 
+def game_thread(games, game_id):
+    while True:
+        games[game_id].update()
+        time.sleep(0.005)
+
+
 def init_server(server, port):
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     try:
@@ -66,6 +72,7 @@ def init_server(server, port):
 
 def acceptation_thread():
     service_threading = []
+    game_threading = []
 
     s = init_server(ip, port)
     print("Waiting for a connection, Server Started")
@@ -78,6 +85,10 @@ def acceptation_thread():
         if game_id not in games:
             games[game_id] = Game(game_id)
             print("Creating a new game...")
+            temp = threading.Thread(target=game_thread, args=(games, game_id))
+            temp.setDaemon(True)
+            temp.start()
+            game_threading.append(temp)
         print("Adding player %s in game %s" % (address[1], game_id))
 
         temp = threading.Thread(target=client_thread, args=(conn, game_id, address[1]))
