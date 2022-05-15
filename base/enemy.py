@@ -99,7 +99,7 @@ class EnemyType2(Plane):
                     'max_speed': 5,
                 },
                 bullet_setting={
-                    'damage': 4,
+                    'damage': 1,
                     'target': target,
 
                 },

@@ -69,7 +69,7 @@ if __name__ == '__main__':
             'max_speed': 8,
         },
         plane_setting={
-
+            'health': 10,
         },
     )
 

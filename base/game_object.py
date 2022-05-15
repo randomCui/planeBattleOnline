@@ -12,6 +12,7 @@ class GameObject:
         self.height = 0
         self.size = None
         self.texture = None
+        self.mask = None
         for key, value in properties['basic_setting'].items():
             setattr(self, key, value)
 

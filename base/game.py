@@ -1,4 +1,4 @@
-import sys, time, random
+import sys, time, random, pygame
 sys.path.append('../base')
 
 from base.config import setting,window_height,window_width,frame_rate
@@ -26,6 +26,12 @@ class Game:
         }
         self.random = random.Random()
         self.random.seed(self.current_time)
+
+        self.animation = {
+            'hostile_bullet_explosion': [],
+            'friendly_bullet_explosion': [],
+            'enemy_catch_fire': [],
+        }
 
     def enemy_spawn(self, pos=(0,0), enemy_type=1):
         # 随机生成一个敌机种类
@@ -86,7 +92,22 @@ class Game:
                 self.hostile_bullets.remove(b)
 
     def collision_detection(self):
-        pass
+        for p_id, player in self.players.items():
+            player_mask = pygame.mask.from_surface(t.lib[player.texture_name])
+            for h_bullet in self.hostile_bullets:
+                bullet_mask = pygame.mask.from_surface(t.lib[h_bullet.texture_name])
+                if self.collide(player, h_bullet,player_mask,bullet_mask):
+                    self.player_get_hit(player,h_bullet.damage)
+                    self.hostile_bullets.remove(h_bullet)
+
+    @staticmethod
+    def collide(obj1, obj2, mask1, mask2):
+        offset_x = obj2.x - obj1.x
+        offset_y = obj2.y - obj1.y
+        return mask1.overlap(mask2, (offset_x, offset_y)) != None
+
+    def player_get_hit(self, player, amount):
+        player.hit(amount)
 
     def hostile_bullets_move(self):
         for b in self.hostile_bullets:
@@ -101,5 +122,6 @@ class Game:
         self.enemy_move()
         self.enemy_shoot()
         self.hostile_bullets_move()
+        self.collision_detection()
         self.ouf_of_boarder_handler()
 

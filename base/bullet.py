@@ -47,4 +47,3 @@ class BulletAiming(Bullet):
         self.vx = self.max_speed*(target_vector[0]/distance)
         self.vy = self.max_speed * (target_vector[1] / distance)
         self.angle_from_y = vector_angle_from_y(target_vector)
-        print(self.angle_from_y*180/3.14)
