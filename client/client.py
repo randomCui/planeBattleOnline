@@ -1,5 +1,6 @@
 import pygame
 import sys
+from math import degrees
 
 # 为了导入其他目录的模块，需要先将其他目录的路径加入环境变量中
 sys.path.append('..')
@@ -11,7 +12,7 @@ from base.shared_lib import t
 from base.config import window_height as height
 from base.config import window_width as width
 from network import Network
-from base.config import ip, port
+from base.config import ip, port, sensitivity
 
 # width = 500
 # height = 500
@@ -33,7 +34,8 @@ def redraw(window, game):
 
 def draw_hostile_bullets(window, bullets):
     for bullet in bullets:
-        bullet.init_texture(t.lib[bullet.texture_name])
+        rotated_img = pygame.transform.rotate(t.lib[bullet.texture_name], degrees(bullet.angle_from_y))
+        bullet.init_texture(rotated_img)
         bullet.draw_self(window)
 
 
@@ -51,7 +53,8 @@ def draw_players(window, players):
 
 def draw_friendly_bullets(window, bullets):
     for bullet in bullets:
-        bullet.init_texture(t.lib[bullet.texture_name])
+        rotated_img = pygame.transform.rotate(t.lib[bullet.texture_name], degrees(bullet.angle_from_y))
+        bullet.init_texture(rotated_img)
         bullet.draw_self(window)
 
 
@@ -68,6 +71,7 @@ def keep_in_screen_client(player):
     if p.y+p.height>height:
         p.y = height - p.height
         p.vy = 0
+
 
 def draw_background(window):
     window.fill((60, 63, 65))
@@ -105,8 +109,10 @@ if __name__ == '__main__':
     clock = pygame.time.Clock()
     run = True
 
+    control_counter = 0
+
     while run:
-        clock.tick(60)
+        clock.tick(120)
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 run = False
@@ -115,13 +121,18 @@ if __name__ == '__main__':
         # 由本地输入得到飞机移动的向量 和 飞机是否靠近鼠标位置
         control_report = get_input(p.get_center())
         # 在飞机的速度矢量上加上之前的移动矢量
-        p.change_pos(control_report['move_vector'])
-        # 如果在鼠标控制模式下，接近光标位置，就开始增加阻尼，使飞机减速
-        if control_report['is_damping']:
-            p.damping()
 
-        # 结算并更新本地在这个时间点后的飞机位置
-        p.update()
+        if control_counter == sensitivity:
+            control_counter = 0
+            p.change_pos(control_report['move_vector'])
+            # 如果在鼠标控制模式下，接近光标位置，就开始增加阻尼，使飞机减速
+            if control_report['is_damping']:
+                p.damping()
+
+            # 结算并更新本地在这个时间点后的飞机位置
+            p.update()
+        control_counter += 1
+
         # 让对象保持在屏幕中央
         keep_in_screen_client(p)
         # 组织好向服务器发送的数据

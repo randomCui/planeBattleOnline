@@ -6,6 +6,8 @@ frame_rate = 60
 ip = 'localhost'
 port = 11451
 
+sensitivity = 2
+
 setting = {
     'easy': {
         'enemy_spawn_time': 2,

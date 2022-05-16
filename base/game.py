@@ -154,7 +154,7 @@ class Game:
             if value.x + value.width > window_width:
                 obj[key].x = window_width - value.width
                 obj[key].vx = 0
-            if value.y <0:
+            if value.y < 0:
                 obj[key].y = 0
                 obj[key].vy = 0
             if value.y + value.height > window_height:

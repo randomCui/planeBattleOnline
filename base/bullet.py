@@ -11,6 +11,8 @@ class Bullet(InertiaObject):
         self.animation_list = []
         self.not_destroyed = True
 
+        self.angle_from_y = 0
+
         for key, value in properties['bullet_setting'].items():
             setattr(self, key, value)
 
@@ -33,7 +35,6 @@ class BulletSimple(Bullet):
 class BulletAiming(Bullet):
     def __init__(self, **properties):
         self.target = None
-        self.angle_from_y = None
 
         super(BulletAiming, self).__init__(basic_setting=properties['basic_setting'],
                                            inertia_setting=properties['inertia_setting'],

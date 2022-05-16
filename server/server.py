@@ -64,7 +64,7 @@ def game_thread(game_state, games, game_id):
     while True:
         if game_state[game_id] == 'running':
             games[game_id].update()
-            time.sleep(0.005)
+            # time.sleep(0.005)
         elif game_state[game_id] == 'idle':
             time.sleep(0.1)
         elif game_state[game_id] == 'stopped':
