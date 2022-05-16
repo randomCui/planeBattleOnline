@@ -8,23 +8,27 @@ toggle_mouse_control = False
 toggle_mouse_control_delay = 0
 
 
-def get_input_vector_keyboard():
+def get_input_vector_keyboard(keys):
     global toggle_mouse_control
     global toggle_mouse_control_delay
-    keys = pygame.key.get_pressed()
-    x=0
-    y=0
+    is_damping = True
+    x = 0
+    y = 0
     if keys[pygame.K_LEFT]:
         x -= 0.1
+        is_damping = False
 
     if keys[pygame.K_RIGHT]:
         x += 0.1
+        is_damping = False
 
     if keys[pygame.K_UP]:
         y -= 0.1
+        is_damping = False
 
     if keys[pygame.K_DOWN]:
         y += 0.1
+        is_damping = False
 
     toggle_mouse_control_delay -= 1
     if toggle_mouse_control_delay < 0:
@@ -35,7 +39,7 @@ def get_input_vector_keyboard():
             else:
                 toggle_mouse_control = True
 
-    return x,y
+    return (x, y), is_damping
 
 
 def get_input_vector_mouse(plane_pos):
@@ -54,27 +58,38 @@ def mouse_move_vector_adjust(vector):
     return a_vector
 
 
-# def dumper(vector):
-#     dumper_activate_distance = 100
-#     dumper_factor = 1.2
-#     """
-#     当飞船运动到接近鼠标的位置时会出现往复运动的情况，因此设置一个阻尼来消除简谐运动现象
-#
-#     :return: 经过阻尼的向量，以及通知飞机对象是否要停止的标志
-#     """
-#     distance = sqrt(pow(vector[0],2)+pow(vector[1],2))
-#     if distance < dumper_activate_distance:
-#         return (vector[0]*(distance/dumper_activate_distance)*dumper_factor*-1,
-#                vector[1]*(distance/dumper_activate_distance)*dumper_factor*-1)
-#     else:
-#         return vector
+def detect_shooting(keys):
+    # 说明玩家发射了子弹
+    if keys[pygame.K_SPACE]:
+        return True
 
 
 def get_input(plane_pos):
-    kb_input = get_input_vector_keyboard()
+    # 提供一个规范的报文格式
+    control_report = {
+        'move_vector': None,
+        'is_controlling': None,
+        'is_shooting': None,
+    }
+
+    kb_state = pygame.key.get_pressed()
+
+    kb_input = get_input_vector_keyboard(kb_state)
     mouse_input = get_input_vector_mouse(plane_pos)
+
+    is_shooting = detect_shooting(kb_state)
+
     if not toggle_mouse_control:
-        return kb_input,False
+        move_vector, is_damping = kb_input
+        # return kb_input,False
     else:
-        return mouse_input
+        move_vector, is_damping = mouse_input
+        # return mouse_input
+
+    control_report['move_vector'] = move_vector
+    control_report['is_damping'] = is_damping
+    control_report['is_shooting'] = is_shooting
+
+    return control_report
+
 

@@ -1,4 +1,6 @@
 from inertia_object import InertiaObject
+from bullet import BulletSimple
+from shared_lib import t
 
 
 class Plane(InertiaObject):
@@ -17,6 +19,7 @@ class Plane(InertiaObject):
                          )
 
         self.health = None
+        self.last_fire = 0
 
         for key, value in properties['plane_setting'].items():
             setattr(self, key, value)
@@ -24,10 +27,30 @@ class Plane(InertiaObject):
     def hit(self, amount=1):
         assert self.health is not None
         self.health -= amount
-        print(self.health)
 
     def init_move(self, speed_vector):
         self.vx, self.vy = speed_vector
 
-    def shoot(self,**kwargs):
-        pass
+    def shoot(self, **kwargs):
+        assert self.fire_cool_down_frame is not None
+        if self.last_fire > self.fire_cool_down_frame:
+            self.last_fire = 0
+            temp = BulletSimple(
+                basic_setting={
+                    'x': self.get_center()[0] - t.lib['BLUE_LASER'].get_size()[0] / 2,
+                    'y': self.get_center()[1] - t.lib['BLUE_LASER'].get_size()[1] / 2,
+                    'size': t.lib['BLUE_LASER'].get_size(),
+                    'texture_name': 'BLUE_LASER',
+                },
+                inertia_setting={
+                    'max_speed': 5,
+                },
+                bullet_setting={
+                    'damage': 4,
+                },
+            )
+            temp.init_shoot_move((0, 0))
+            return True, temp
+        else:
+            self.last_fire += 1
+            return False, None

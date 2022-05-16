@@ -1,6 +1,5 @@
 from inertia_object import InertiaObject
-from util import distance_between,vector_angle_from_y
-from math import atan
+from util import distance_between, vector_angle_from_y
 
 
 class Bullet(InertiaObject):
@@ -42,8 +41,8 @@ class BulletAiming(Bullet):
                                            )
 
         assert self.target is not None
-        target_vector = self.target[0]-self.get_center()[0], self.target[1]-self.get_center()[1]
+        target_vector = self.target[0] - self.get_center()[0], self.target[1] - self.get_center()[1]
         distance = distance_between(self.target, self.get_center())
-        self.vx = self.max_speed*(target_vector[0]/distance)
+        self.vx = self.max_speed * (target_vector[0] / distance)
         self.vy = self.max_speed * (target_vector[1] / distance)
         self.angle_from_y = vector_angle_from_y(target_vector)
