@@ -65,13 +65,13 @@ class EnemyType2(Plane):
             angle_from_y = vector_angle_from_y(target_vector)
 
             # 如果已经超过攻击角度，就放弃攻击
-            if abs(angle_from_y) > pi / 4 or self.y > target[1]:
+            if abs(angle_from_y) > pi / 3 or self.y > target[1]:
                 return False, None
 
             temp = BulletAiming(
                 basic_setting={
                     'x': self.get_center()[0] - t.lib['BLUE_LASER'].get_size()[0] / 2,
-                    'y': self.get_center()[1] - t.lib['BLUE_LASER'].get_size()[1] / 2,
+                    'y': self.get_center()[1] - 30,
                     'size': t.lib['BLUE_LASER'].get_size(),
                     'texture_name': 'BLUE_LASER',
                 },

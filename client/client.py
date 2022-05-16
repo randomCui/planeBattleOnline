@@ -1,6 +1,7 @@
-import pygame
 import sys
 from math import degrees
+
+import pygame
 
 # 为了导入其他目录的模块，需要先将其他目录的路径加入环境变量中
 sys.path.append('..')
@@ -34,9 +35,12 @@ def redraw(window, game):
 
 def draw_hostile_bullets(window, bullets):
     for bullet in bullets:
-        rotated_img = pygame.transform.rotate(t.lib[bullet.texture_name], degrees(bullet.angle_from_y))
-        bullet.init_texture(rotated_img)
-        bullet.draw_self(window)
+        rotate_around_pivot(window,
+                            t.lib[bullet.texture_name],
+                            (bullet.x + bullet.width / 2, bullet.y + bullet.height / 2),
+                            (bullet.width / 2, bullet.height / 2),
+                            degrees(bullet.angle_from_y)
+                            )
 
 
 def draw_enemies(window, enemies):
@@ -49,6 +53,29 @@ def draw_players(window, players):
     for p_id, player in players.items():
         player.init_texture(t.lib[player.texture_name])
         player.draw_self(window)
+
+
+def rotate_around_pivot(window, image, pos, pivot_pos, angle):
+    # offset from pivot to center
+    image_rect = image.get_rect(topleft=(pos[0] - pivot_pos[0], pos[1] - pivot_pos[1]))
+    offset_center_to_pivot = pygame.math.Vector2(pos) - image_rect.center
+
+    # roatated offset from pivot to center
+    rotated_offset = offset_center_to_pivot.rotate(-angle)
+
+    # roatetd image center
+    rotated_image_center = (pos[0] - rotated_offset.x, pos[1] - rotated_offset.y)
+
+    # get a rotated image
+    rotated_image = pygame.transform.rotate(image, angle)
+    rotated_image_rect = rotated_image.get_rect(center=rotated_image_center)
+
+    # rotate and blit the image
+    window.blit(rotated_image, rotated_image_rect)
+
+    # draw rectangle around the image
+    # pygame.draw.rect(window, (255, 0, 0), (*rotated_image_rect.topleft, *rotated_image.get_size()), 2)
+    return rotated_image
 
 
 def draw_friendly_bullets(window, bullets):
@@ -122,13 +149,13 @@ if __name__ == '__main__':
         control_report = get_input(p.get_center())
         # 在飞机的速度矢量上加上之前的移动矢量
 
+        p.change_pos(control_report['move_vector'])
+        # 如果在鼠标控制模式下，接近光标位置，就开始增加阻尼，使飞机减速
+        if control_report['is_damping']:
+            p.damping()
+
         if control_counter == sensitivity:
             control_counter = 0
-            p.change_pos(control_report['move_vector'])
-            # 如果在鼠标控制模式下，接近光标位置，就开始增加阻尼，使飞机减速
-            if control_report['is_damping']:
-                p.damping()
-
             # 结算并更新本地在这个时间点后的飞机位置
             p.update()
         control_counter += 1
