@@ -6,7 +6,6 @@ import pygame
 # 为了导入其他目录的模块，需要先将其他目录的路径加入环境变量中
 sys.path.append('..')
 sys.path.append('../base')
-sys.path.append('../server')
 
 from input_handle import get_input
 from base.shared_lib import t

@@ -45,8 +45,8 @@ class Player(Plane):
                 )
                 temp.init_shoot_move((0, -5))
                 return True, temp
-            else:
-                self.last_fire += 1
+
+        self.last_fire += 1
 
         return False, None
 
