@@ -33,6 +33,7 @@ client_port = 11451
 pygame.font.init()
 item_font = pygame.font.SysFont("arial", 30)
 
+
 def redraw(window, game):
     draw_background(window)
     draw_players(window, game.players)
@@ -64,7 +65,7 @@ def draw_players(window, players):
         player.init_texture(t.lib[player.texture_name])
         player.draw_self(window)
         title_label = item_font.render(player.nickname, 1, (255, 255, 255))
-        window.blit(title_label, (player.get_center()[0] - title_label.get_width() / 2, player.y-30))
+        window.blit(title_label, (player.get_center()[0] - title_label.get_width() / 2, player.y - 30))
 
 
 def rotate_around_pivot(window, image, pos, pivot_pos, angle):
@@ -98,38 +99,39 @@ def draw_friendly_bullets(window, bullets):
 
 
 def keep_in_screen_client(player):
-    if p.x < 0:
-        p.x = 0
-        p.vx = 0
-    if p.x + p.width > width:
-        p.x = width - p.width
-        p.vx = 0
-    if p.y<0:
-        p.y = 0
-        p.vy = 0
-    if p.y+p.height>height:
-        p.y = height - p.height
-        p.vy = 0
+    if player.x < 0:
+        player.x = 0
+        player.vx = 0
+    if player.x + player.width > width:
+        player.x = width - player.width
+        player.vx = 0
+    if player.y < 0:
+        player.y = 0
+        player.vy = 0
+    if player.y + player.height > height:
+        player.y = height - player.height
+        player.vy = 0
 
 
 def draw_background(window):
     window.fill((60, 63, 65))
 
 
-class MainMenu():
-    def __init__(self,window):
+class MainMenu:
+    def __init__(self, window):
         self.window = window
         self.nickname = ''
         self.texture_name = 'YELLOW_SPACE_SHIP'
         self.mode = False
         self.menu = pygame_menu.Menu('Welcome', width, height,
-                            theme=pygame_menu.themes.THEME_BLUE)
-        self.nickname_input = self.menu.add.text_input('Name :', default='',onchange=self.__update_nickname)
+                                     theme=pygame_menu.themes.THEME_BLUE)
+        self.nickname_input = self.menu.add.text_input('Name :', default='', onchange=self.__update_nickname)
         self.plane_preview = self.menu.add.image(
-        image_path = t.menu[self.texture_name],
-        padding=(25, 0, 0, 0)  # top, right, bottom, left
+            image_path=t.menu[self.texture_name],
+            padding=(25, 0, 0, 0)  # top, right, bottom, left
         )
-        self.plane_selector = self.menu.add.selector('Type :', [('Yellow', 1), ('Blue', 2)], onchange=self.__update_texture)
+        self.plane_selector = self.menu.add.selector('Type :', [('Yellow', 1), ('Blue', 2)],
+                                                     onchange=self.__update_texture)
         # self.join_or_host = self.menu.add.toggle_switch(
         #     'host or join',
         #     # self.mode,
@@ -142,7 +144,7 @@ class MainMenu():
         #     width=120,
         #     state_text=('host','join')
         # )
-        self.ip_input = self.menu.add.text_input('IP address :',default='localhost',onchange=self.__update_ip_address)
+        self.ip_input = self.menu.add.text_input('IP address :', default='localhost', onchange=self.__update_ip_address)
         self.ip_input = self.menu.add.text_input('port :', default='11451', onchange=self.__update_port)
         self.play_button = self.menu.add.button('Play', main_game)
         self.quit_button = self.menu.add.button('Quit', pygame_menu.events.EXIT)
@@ -151,10 +153,10 @@ class MainMenu():
         global client_texture_name
         if value == 1:
             self.texture_name = 'YELLOW_SPACE_SHIP'
-            client_texture_name= 'YELLOW_SPACE_SHIP'
+            client_texture_name = 'YELLOW_SPACE_SHIP'
         elif value == 2:
             self.texture_name = 'BLUE_SPACE_SHIP'
-            client_texture_name= 'BLUE_SPACE_SHIP'
+            client_texture_name = 'BLUE_SPACE_SHIP'
         self.plane_preview.set_image(t.menu[self.texture_name])
 
     def __update_nickname(self, text):
@@ -163,18 +165,20 @@ class MainMenu():
         client_nickname = text
 
     def __update_ip_address(self, text):
-        global ip
-        ip = text
+        # global ip
+        # ip = text
+        pass
 
     def __update_port(self, text):
-        global port
-        port = text
+        # global port
+        # port = text
+        pass
 
-    def __update_mode(self, mode):
-        global host_or_join
-        print(mode)
-        self.mode = mode
-        host_or_join = mode
+    # def __update_mode(self, mode):
+    #     global host_or_join
+    #     print(mode)
+    #     self.mode = mode
+    #     host_or_join = mode
 
     def mainloop(self):
         self.menu.mainloop(self.window)
@@ -190,7 +194,6 @@ def main_game():
     title_font = pygame.font.SysFont("黑体", 60)
     selection_font = pygame.font.SysFont("黑体", 40)
 
-    global p
     # 初始化网络连接
     n = Network(
         ip=ip,
@@ -199,7 +202,7 @@ def main_game():
     # 向服务器发送本客户端的飞机信息
     n.init_player(
         basic_setting={
-            'size': (t.lib[client_texture_name].get_size()),
+            'size': t.lib[client_texture_name].get_size(),
             'texture_name': client_texture_name
         },
         inertia_setting={
@@ -253,7 +256,7 @@ def main_game():
         n.send(data)
 
         # 服务器返回在这一轮之后的战场情况
-        p.draw_self(window)
+        # p.draw_self(window)
         reply = n.receive()
         # 客户端根据更新的情况，对画面进行更新
         redraw(window, reply)
