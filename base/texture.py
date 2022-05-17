@@ -1,5 +1,7 @@
 import os
 import pygame
+from config import window_width as width
+from config import window_height as height
 
 
 class Texture:
@@ -14,4 +16,6 @@ class Texture:
             'GREEN_LASER': pygame.image.load(os.path.join("..", "assets", "pixel_laser_green.png")),
             'BLUE_LASER': pygame.image.load(os.path.join("..", "assets", "pixel_laser_blue.png")),
             'YELLOW_LASER': pygame.image.load(os.path.join("..", "assets", "pixel_laser_yellow.png")),
+            'BG': pygame.transform.scale(pygame.image.load(os.path.join("..","assets", "background-black.png")),
+                                        (width, height))
         }

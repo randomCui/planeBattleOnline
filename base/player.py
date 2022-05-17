@@ -7,6 +7,7 @@ class Player(Plane):
     def __init__(self, **properties):
         self.fire_cool_down_frame = None
         self.want_to_shoot = False
+        self.nickname = ''
         """
         初始化玩家对象
 

@@ -15,7 +15,6 @@ def client_thread(connection, game_id, player_id, game_state):
     player_attr = pickle.loads(connection.recv(2048))
     player_attr['basic_setting']['x'] = 100
     player_attr['basic_setting']['y'] = window_height - 100
-
     player = Player(basic_setting=player_attr['basic_setting'],
                     inertia_setting=player_attr['inertia_setting'],
                     plane_setting=player_attr['plane_setting'],
