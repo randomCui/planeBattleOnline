@@ -1,5 +1,5 @@
 import os
-import pygame
+import pygame, pygame_menu
 from config import window_width as width
 from config import window_height as height
 
@@ -18,4 +18,12 @@ class Texture:
             'YELLOW_LASER': pygame.image.load(os.path.join("..", "assets", "pixel_laser_yellow.png")),
             'BG': pygame.transform.scale(pygame.image.load(os.path.join("..","assets", "background-black.png")),
                                         (width, height))
+        }
+        self.menu = {
+            'YELLOW_SPACE_SHIP': pygame_menu.BaseImage(
+                image_path=os.path.join("..", "assets", "pixel_ship_yellow.png")
+            ),
+            'BLUE_SPACE_SHIP': pygame_menu.BaseImage(
+                image_path=os.path.join("..", "assets", "pixel_ship_blue_small.png")
+            ),
         }

@@ -2,7 +2,6 @@ import sys
 from math import degrees
 
 import pygame
-import pygame_menu
 
 # 为了导入其他目录的模块，需要先将其他目录的路径加入环境变量中
 sys.path.append('..')
@@ -21,8 +20,9 @@ window = pygame.display.set_mode((width, height))
 pygame.display.set_caption("Client")
 
 client_number = 0
-client_nickname = ''
 client_texture_name = 'YELLOW_SPACE_SHIP'
+client_nickname = ''
+
 
 pygame.font.init()
 item_font = pygame.font.SysFont("arial", 30)
@@ -110,44 +110,39 @@ def draw_background(window):
     window.fill((60, 63, 65))
 
 
-def set_player(value, choice):
-    global client_texture_name
-    if choice == 1:
-        client_texture_name = 'YELLOW_SPACE_SHIP'
-    elif choice == 2:
-        client_texture_name = 'BLUE_SPACE_SHIP'
-    print(client_texture_name)
-
-
-def set_player_nickname(text,**kwarg):
-    global client_nickname
-    client_nickname = text
-
-
 def main_menu():
+    pygame.init()
+    m = MainMenu(window)
+    m.mainloop()
+
+    # title_font = pygame.font.SysFont("黑体", 60)
+    # selection_font = pygame.font.SysFont("黑体", 40)
+    # pygame.init()
+    # menu = pygame_menu.Menu('Welcome', width, height,
+    #                         theme=pygame_menu.themes.THEME_BLUE)
+    # menu.add.text_input('Name :', default='',onchange=set_player_nickname)
+    # menu.add.image(
+    #     image_path = t.menu[client_texture_name],
+    #     padding=(25, 0, 0, 0)  # top, right, bottom, left
+    # )
+    # menu.add.selector('Type :', [('Yellow', 1), ('Blue', 2)], onchange=set_player)
+    # menu.add.button('Play', main_game)
+    # menu.add.button('Quit', pygame_menu.events.EXIT)
+    # menu.mainloop(window)
+    # run = True
+    # while run:
+    #     for event in pygame.event.get():
+    #         if event.type == pygame.QUIT:
+    #             run = False
+    #             n.disconnect()
+    #             pygame.quit()
+
+
+def main_game():
 
     pygame.font.init()
     title_font = pygame.font.SysFont("黑体", 60)
     selection_font = pygame.font.SysFont("黑体", 40)
-    pygame.init()
-    menu = pygame_menu.Menu('Welcome', width, height,
-                            theme=pygame_menu.themes.THEME_BLUE)
-
-    menu.add.text_input('Name :', default='',onchange=set_player_nickname)
-    menu.add.selector('Type :', [('Yellow', 1), ('Blue', 2)], onchange=set_player)
-    menu.add.button('Play', main_game)
-    menu.add.button('Quit', pygame_menu.events.EXIT)
-    menu.mainloop(window)
-    run = True
-    while run:
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                run = False
-                n.disconnect()
-                pygame.quit()
-
-
-def main_game():
     global p
     # 初始化网络连接
     n = Network(
@@ -155,7 +150,6 @@ def main_game():
         port=port,
     )
     # 向服务器发送本客户端的飞机信息
-    print(client_texture_name)
     n.init_player(
         basic_setting={
             'size': (t.lib[client_texture_name].get_size()),
@@ -212,6 +206,7 @@ def main_game():
         n.send(data)
 
         # 服务器返回在这一轮之后的战场情况
+        p.draw_self(window)
         reply = n.receive()
         # 客户端根据更新的情况，对画面进行更新
         redraw(window, reply)
