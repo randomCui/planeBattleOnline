@@ -1,11 +1,14 @@
+import os
 import sys
 from math import degrees
 
 import pygame
+import pygame_menu
 
 # 为了导入其他目录的模块，需要先将其他目录的路径加入环境变量中
 sys.path.append('..')
 sys.path.append('../base')
+sys.path.append('../server')
 
 from input_handle import get_input
 from base.shared_lib import t
@@ -13,6 +16,8 @@ from base.config import window_height as height
 from base.config import window_width as width
 from network import Network
 from base.config import ip, port, sensitivity
+
+from multiprocessing import Process
 
 # width = 500
 # height = 500
@@ -22,7 +27,8 @@ pygame.display.set_caption("Client")
 client_number = 0
 client_texture_name = 'YELLOW_SPACE_SHIP'
 client_nickname = ''
-
+client_ip = 'localhost'
+client_port = 11451
 
 pygame.font.init()
 item_font = pygame.font.SysFont("arial", 30)
@@ -110,39 +116,80 @@ def draw_background(window):
     window.fill((60, 63, 65))
 
 
+class MainMenu():
+    def __init__(self,window):
+        self.window = window
+        self.nickname = ''
+        self.texture_name = 'YELLOW_SPACE_SHIP'
+        self.mode = False
+        self.menu = pygame_menu.Menu('Welcome', width, height,
+                            theme=pygame_menu.themes.THEME_BLUE)
+        self.nickname_input = self.menu.add.text_input('Name :', default='',onchange=self.__update_nickname)
+        self.plane_preview = self.menu.add.image(
+        image_path = t.menu[self.texture_name],
+        padding=(25, 0, 0, 0)  # top, right, bottom, left
+        )
+        self.plane_selector = self.menu.add.selector('Type :', [('Yellow', 1), ('Blue', 2)], onchange=self.__update_texture)
+        # self.join_or_host = self.menu.add.toggle_switch(
+        #     'host or join',
+        #     # self.mode,
+        #     # font_size=20,
+        #     margin=(0, 5),
+        #     onchange=self.__update_mode,
+        #     # state_text_font_color=((0, 0, 0), (0, 0, 0)),
+        #     # state_text_font_size=15,
+        #     # switch_margin=(15, 0),
+        #     width=120,
+        #     state_text=('host','join')
+        # )
+        self.ip_input = self.menu.add.text_input('IP address :',default='localhost',onchange=self.__update_ip_address)
+        self.ip_input = self.menu.add.text_input('port :', default='11451', onchange=self.__update_port)
+        self.play_button = self.menu.add.button('Play', main_game)
+        self.quit_button = self.menu.add.button('Quit', pygame_menu.events.EXIT)
+
+    def __update_texture(self, selected, value):
+        global client_texture_name
+        if value == 1:
+            self.texture_name = 'YELLOW_SPACE_SHIP'
+            client_texture_name= 'YELLOW_SPACE_SHIP'
+        elif value == 2:
+            self.texture_name = 'BLUE_SPACE_SHIP'
+            client_texture_name= 'BLUE_SPACE_SHIP'
+        self.plane_preview.set_image(t.menu[self.texture_name])
+
+    def __update_nickname(self, text):
+        global client_nickname
+        self.nickname = text
+        client_nickname = text
+
+    def __update_ip_address(self, text):
+        global ip
+        ip = text
+
+    def __update_port(self, text):
+        global port
+        port = text
+
+    def __update_mode(self, mode):
+        global host_or_join
+        print(mode)
+        self.mode = mode
+        host_or_join = mode
+
+    def mainloop(self):
+        self.menu.mainloop(self.window)
+
+
 def main_menu():
     pygame.init()
     m = MainMenu(window)
     m.mainloop()
 
-    # title_font = pygame.font.SysFont("黑体", 60)
-    # selection_font = pygame.font.SysFont("黑体", 40)
-    # pygame.init()
-    # menu = pygame_menu.Menu('Welcome', width, height,
-    #                         theme=pygame_menu.themes.THEME_BLUE)
-    # menu.add.text_input('Name :', default='',onchange=set_player_nickname)
-    # menu.add.image(
-    #     image_path = t.menu[client_texture_name],
-    #     padding=(25, 0, 0, 0)  # top, right, bottom, left
-    # )
-    # menu.add.selector('Type :', [('Yellow', 1), ('Blue', 2)], onchange=set_player)
-    # menu.add.button('Play', main_game)
-    # menu.add.button('Quit', pygame_menu.events.EXIT)
-    # menu.mainloop(window)
-    # run = True
-    # while run:
-    #     for event in pygame.event.get():
-    #         if event.type == pygame.QUIT:
-    #             run = False
-    #             n.disconnect()
-    #             pygame.quit()
-
 
 def main_game():
-
-    pygame.font.init()
     title_font = pygame.font.SysFont("黑体", 60)
     selection_font = pygame.font.SysFont("黑体", 40)
+
     global p
     # 初始化网络连接
     n = Network(

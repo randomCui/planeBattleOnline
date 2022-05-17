@@ -34,9 +34,7 @@ class Network:
 
     def send(self, data):
         try:
-            self.client.send(pickle.dumps(
-                data)
-            )
+            self.client.send(pickle.dumps(data))
         except socket.error as e:
             print(e)
 
