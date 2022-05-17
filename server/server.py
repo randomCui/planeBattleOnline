@@ -24,7 +24,9 @@ def client_thread(connection, game_id, player_id, game_state):
     connection.send(pickle.dumps(
         (player_id, player)
     ))
+    game_semaphore[game_id].acquire()
     games[game_id].players[player_id] = player
+    game_semaphore[game_id].release()
     current_game = games[game_id]
     current_player = current_game.players[player_id]
     while True:
@@ -37,7 +39,9 @@ def client_thread(connection, game_id, player_id, game_state):
             if not data:
                 break
         except EOFError as end:
+            game_semaphore[game_id].acquire()
             del current_game.players[player_id]
+            game_semaphore[game_id].release()
             connection.close()
             break
 
@@ -62,8 +66,10 @@ def client_thread(connection, game_id, player_id, game_state):
 def game_thread(game_state, games, game_id):
     while True:
         if game_state[game_id] == 'running':
+            game_semaphore[game_id].acquire()
             games[game_id].update()
             # time.sleep(0.005)
+            game_semaphore[game_id].release()
         elif game_state[game_id] == 'idle':
             time.sleep(0.1)
         elif game_state[game_id] == 'stopped':
@@ -97,6 +103,7 @@ def acceptation_thread():
             print("Creating a new game...")
             games[game_id] = Game(game_id)
             game_state[game_id] = 'idle'
+            game_semaphore[game_id] = threading.Semaphore(1)
             temp = threading.Thread(target=game_thread, args=(game_state, games, game_id))
             temp.setDaemon(True)
             temp.start()
@@ -118,6 +125,7 @@ if __name__ == '__main__':
 
     # 服务器正在运行的所有游戏房间字典
     games = {}
+    game_semaphore = {}
 
     listen_thread = threading.Thread(target=acceptation_thread)
     listen_thread.setDaemon(True)
