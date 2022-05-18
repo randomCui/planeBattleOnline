@@ -33,8 +33,16 @@ def client_thread(connection, game_id, player_id, game_state):
         try:
             data = pickle.loads(connection.recv(2048 * 10))
             current_player.set_pos(data['pos'])
+
             if data['bullet'] is not None:
                 current_player.want_to_shoot = data['bullet']
+            if not data['pause']:
+                current_game.state = 'running'
+                game_state[game_id] = 'running'
+            else:
+                current_game.state = 'pause'
+                game_state[game_id] = 'idle'
+
             connection.send(pickle.dumps(current_game))
             if not data:
                 break
@@ -70,8 +78,10 @@ def game_thread(game_state, games, game_id):
             games[game_id].update()
             # time.sleep(0.005)
             game_semaphore[game_id].release()
+            last_time = time.time()
         elif game_state[game_id] == 'idle':
-            time.sleep(0.1)
+            games[game_id].recover_from_pause = True
+            time.sleep(0.2)
         elif game_state[game_id] == 'stopped':
             break
 

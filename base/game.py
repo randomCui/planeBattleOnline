@@ -13,6 +13,7 @@ from base.shared_lib import t
 
 class Game:
     def __init__(self, game_id, difficulty='easy'):
+        self.state = 'running'
         self.game_id = game_id
         self.enemies = []
         self.players = {}
@@ -24,10 +25,13 @@ class Game:
         self.start_time = time.time()
 
         self.current_time = self.start_time
+        self.pause_time_point = self.current_time
+        self.recover_from_pause = False
         self.timer = {
             'game_tick': 0,
             'enemy_spawn': 0,
         }
+
         self.random = random.Random()
         self.random.seed(self.current_time)
 
@@ -73,8 +77,15 @@ class Game:
         # 推算自从上次update以来经过的时间，并更新所有寄存器的值
         time_past = time.time() - self.current_time
         self.current_time = time.time()
-        for key, value in self.timer.items():
-            self.timer[key] += time_past
+        if self.recover_from_pause:
+            self.recover_from_pause = False
+            time_past = 0
+            for key, value in self.timer.items():
+                self.timer[key] += time_past
+            # print(self.timer)
+        else:
+            for key, value in self.timer.items():
+                self.timer[key] += time_past
         return self.timer['game_tick']
 
     def enemy_move(self):
@@ -207,3 +218,4 @@ class Game:
         self.detect_animation_expire()
 
         self.ouf_of_boarder_handler()
+

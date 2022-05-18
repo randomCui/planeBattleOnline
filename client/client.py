@@ -23,6 +23,12 @@ from multiprocessing import Process
 # height = 500
 window = pygame.display.set_mode((width, height))
 pygame.display.set_caption("Client")
+pygame.font.init()
+title_font = pygame.font.SysFont("黑体", 30)
+selection_font = pygame.font.SysFont("黑体", 40)
+pause_font = pygame.font.SysFont("arial", 70)
+sub_pause_font = pygame.font.SysFont("arial", 40)
+
 
 client_number = 0
 client_texture_name = 'YELLOW_SPACE_SHIP'
@@ -30,7 +36,6 @@ client_nickname = ''
 client_ip = 'localhost'
 client_port = 11451
 
-pygame.font.init()
 item_font = pygame.font.SysFont("arial", 30)
 
 
@@ -73,6 +78,14 @@ def draw_players(window, players):
         player.draw_self(window)
         title_label = item_font.render(player.nickname, 1, (255, 255, 255))
         window.blit(title_label, (player.get_center()[0] - title_label.get_width() / 2, player.y - 30))
+
+
+def draw_pause_window(window):
+    title_pause = pause_font.render("Paused", True, (255, 255, 255))
+    window.blit(title_pause, (width / 2 - title_pause.get_width() / 2, 250))
+    title_pause = sub_pause_font.render("Press ESC to resume", True, (255, 255, 255))
+    window.blit(title_pause, (width / 2 - title_pause.get_width() / 2, 350))
+    pygame.display.update()
 
 
 def rotate_around_pivot(window, image, pos, pivot_pos, angle):
@@ -198,9 +211,7 @@ def main_menu():
 
 
 def main_game():
-    title_font = pygame.font.SysFont("黑体", 60)
-    selection_font = pygame.font.SysFont("黑体", 40)
-
+    game_state = 'running'
     # 初始化网络连接
     n = Network(
         ip=ip,
@@ -249,7 +260,8 @@ def main_game():
         if control_counter == sensitivity:
             control_counter = 0
             # 结算并更新本地在这个时间点后的飞机位置
-            p.update()
+            if game_state == 'running':
+                p.update()
         control_counter += 1
 
         # 让对象保持在屏幕中央
@@ -258,6 +270,7 @@ def main_game():
         data = {
             'pos': p.get_pos(),
             'bullet': control_report['is_shooting'],
+            'pause': control_report['need_pause'],
         }
         # 发送到服务器
         n.send(data)
@@ -265,8 +278,14 @@ def main_game():
         # 服务器返回在这一轮之后的战场情况
         # p.draw_self(window)
         reply = n.receive()
+        game_state = reply.state
         # 客户端根据更新的情况，对画面进行更新
-        redraw(window, reply)
+        if game_state == 'running':
+            redraw(window, reply)
+        if game_state == 'pause':
+            draw_pause_window(window)
+            # redraw(window, reply)
+
 
 
 if __name__ == '__main__':
