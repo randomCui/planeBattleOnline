@@ -6,7 +6,8 @@ import time
 sys.path.append('../base')
 
 from base.config import setting, window_height, window_width, frame_rate
-from base.enemy import EnemyType2
+from base.enemy import EnemyType1,EnemyType2
+from base.animation import Animation
 from base.shared_lib import t
 
 
@@ -34,6 +35,7 @@ class Game:
             'hostile_bullet_explosion': [],
             'friendly_bullet_explosion': [],
             'enemy_catch_fire': [],
+            'enemy_explosion': [],
         }
 
     def enemy_spawn(self, pos=(0, 0), enemy_type=1):
@@ -117,6 +119,13 @@ class Game:
                 if self.collide(enemy, f_bullet, enemy_mask, bullet_mask):
                     self.get_hit(enemy, f_bullet.damage)
                     self.friendly_bullets.remove(f_bullet)
+        for p_id, player in self.players.items():
+            player_mask = pygame.mask.from_surface(t.lib[player.texture_name])
+            for enemy in self.enemies:
+                enemy_mask = pygame.mask.from_surface(t.lib[enemy.texture_name])
+                if self.collide(player, enemy,player_mask, enemy_mask):
+                    self.instant_die(enemy)
+
 
     @staticmethod
     def collide(obj1, obj2, mask1, mask2):
@@ -127,6 +136,10 @@ class Game:
     @staticmethod
     def get_hit(plane_obj, amount):
         plane_obj.hit(amount)
+
+    @staticmethod
+    def instant_die(plane_obj):
+        plane_obj.health = 0
 
     def hostile_bullets_move(self):
         for b in self.hostile_bullets:
@@ -139,11 +152,23 @@ class Game:
     def enemy_die_detection(self):
         for enemy in self.enemies:
             if enemy.health <= 0:
+                temp = Animation(enemy.get_center(), (0, 0), 'explosion1')
+                self.animation['enemy_explosion'].append(temp)
                 self.enemies.remove(enemy)
-
 
     def player_failed_detection(self):
         pass
+
+    def update_animation(self):
+        for key, animate_list in self.animation.items():
+            for animate in animate_list:
+                animate.update()
+
+    def detect_animation_expire(self):
+        for key, animate_list in self.animation.items():
+            for animate in animate_list:
+                if animate.counter >= animate.length:
+                    self.animation[key].remove(animate)
 
     @staticmethod
     def obj_keep_in_screen(obj):
@@ -177,4 +202,8 @@ class Game:
 
         self.collision_detection()
         self.enemy_die_detection()
+
+        self.update_animation()
+        self.detect_animation_expire()
+
         self.ouf_of_boarder_handler()

@@ -40,8 +40,15 @@ def redraw(window, game):
     draw_enemies(window, game.enemies)
     draw_hostile_bullets(window, game.hostile_bullets)
     draw_friendly_bullets(window, game.friendly_bullets)
+    draw_global_animate(window,game.animation)
 
     pygame.display.update()
+
+
+def draw_global_animate(window, animation):
+    for key, value in animation.items():
+        for animate in value:
+            animate.draw_self(window)
 
 
 def draw_hostile_bullets(window, bullets):
