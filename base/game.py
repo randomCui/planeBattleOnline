@@ -23,7 +23,10 @@ class Game:
         self.missile = []
         self.friendly_bullets = []
         self.props = []
+
         self.running_state = False
+        self.pause_owner = ''
+
         self.difficult = difficulty
         self.start_time = time.time()
 

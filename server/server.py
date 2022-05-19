@@ -42,12 +42,15 @@ def client_thread(connection, game_id, player_id, game_state):
 
             if data['bullet'] is not None:
                 current_player.want_to_shoot = data['bullet']
-            if not data['pause']:
-                current_game.state = 'running'
-                game_state[game_id] = 'running'
-            else:
-                current_game.state = 'pause'
-                game_state[game_id] = 'idle'
+            if current_game.pause_owner == '' or current_game.pause_owner == player_id:
+                if data['pause']:
+                    current_game.pause_owner = player_id
+                    current_game.state = 'pause'
+                    game_state[game_id] = 'idle'
+                else:
+                    current_game.state = 'running'
+                    game_state[game_id] = 'running'
+                    current_game.pause_owner = ''
 
             connection.send(pickle.dumps(current_game))
             if not data:

@@ -251,6 +251,7 @@ def main_game():
         # 让对象保持在屏幕中央
         keep_in_screen_client(p)
         # 组织好向服务器发送的数据
+        print(control_report['need_pause'])
         data = {
             'pos': p.get_pos(),
             'bullet': control_report['is_shooting'],
@@ -263,12 +264,13 @@ def main_game():
         # p.draw_self(window)
         reply = n.receive()
         game_state = reply.state
+        print(game_state)
         # 客户端根据更新的情况，对画面进行更新
         if game_state == 'running':
             redraw(win, reply)
         if game_state == 'pause':
             draw_pause_window(win)
-            # redraw(window, reply)
+            # redraw(win, reply)
 
 
 if __name__ == '__main__':
