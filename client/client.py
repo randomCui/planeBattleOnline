@@ -17,12 +17,16 @@ from base.config import window_width as width
 from network import Network
 from base.config import ip, port, sensitivity
 
-from multiprocessing import Process
 
 # width = 500
 # height = 500
-window = pygame.display.set_mode((width, height))
+win = pygame.display.set_mode((width, height))
 pygame.display.set_caption("Client")
+pygame.font.init()
+title_font = pygame.font.SysFont("黑体", 30)
+selection_font = pygame.font.SysFont("黑体", 40)
+pause_font = pygame.font.SysFont("arial", 70)
+sub_pause_font = pygame.font.SysFont("arial", 40)
 
 client_number = 0
 client_texture_name = 'YELLOW_SPACE_SHIP'
@@ -30,8 +34,7 @@ client_nickname = ''
 client_ip = 'localhost'
 client_port = 11451
 
-pygame.font.init()
-item_font = pygame.font.SysFont("arial", 30)
+nickname_font = pygame.font.SysFont("calibri", 30)
 
 
 def redraw(window, game):
@@ -40,18 +43,21 @@ def redraw(window, game):
     draw_enemies(window, game.enemies)
     draw_hostile_bullets(window, game.hostile_bullets)
     draw_friendly_bullets(window, game.friendly_bullets)
+    draw_global_animate(window, game.animation)
 
     pygame.display.update()
 
 
+def draw_global_animate(window, animation):
+    for key, value in animation.items():
+        for animate in value:
+            animate.draw_self(window)
+
+
 def draw_hostile_bullets(window, bullets):
     for bullet in bullets:
-        rotate_around_pivot(window,
-                            t.lib[bullet.texture_name],
-                            (bullet.x + bullet.width / 2, bullet.y + bullet.height / 2),
-                            (bullet.width / 2, bullet.height / 2),
-                            degrees(bullet.angle_from_y)
-                            )
+        bullet.init_texture(t.lib[bullet.texture_name])
+        bullet.draw_self(window)
 
 
 def draw_enemies(window, enemies):
@@ -64,36 +70,21 @@ def draw_players(window, players):
     for p_id, player in players.items():
         player.init_texture(t.lib[player.texture_name])
         player.draw_self(window)
-        title_label = item_font.render(player.nickname, 1, (255, 255, 255))
+        title_label = nickname_font.render(player.nickname, True, (255, 255, 255))
         window.blit(title_label, (player.get_center()[0] - title_label.get_width() / 2, player.y - 30))
 
 
-def rotate_around_pivot(window, image, pos, pivot_pos, angle):
-    # offset from pivot to center
-    image_rect = image.get_rect(topleft=(pos[0] - pivot_pos[0], pos[1] - pivot_pos[1]))
-    offset_center_to_pivot = pygame.math.Vector2(pos) - image_rect.center
-
-    # roatated offset from pivot to center
-    rotated_offset = offset_center_to_pivot.rotate(-angle)
-
-    # roatetd image center
-    rotated_image_center = (pos[0] - rotated_offset.x, pos[1] - rotated_offset.y)
-
-    # get a rotated image
-    rotated_image = pygame.transform.rotate(image, angle)
-    rotated_image_rect = rotated_image.get_rect(center=rotated_image_center)
-
-    # rotate and blit the image
-    window.blit(rotated_image, rotated_image_rect)
-
-    # draw rectangle around the image
-    # pygame.draw.rect(window, (255, 0, 0), (*rotated_image_rect.topleft, *rotated_image.get_size()), 2)
-    return rotated_image
+def draw_pause_window(window):
+    title_pause = pause_font.render("Paused", True, (255, 255, 255))
+    window.blit(title_pause, (width / 2 - title_pause.get_width() / 2, 250))
+    title_pause = sub_pause_font.render("Press ESC to resume", True, (255, 255, 255))
+    window.blit(title_pause, (width / 2 - title_pause.get_width() / 2, 350))
+    pygame.display.update()
 
 
 def draw_friendly_bullets(window, bullets):
     for bullet in bullets:
-        rotated_img = pygame.transform.rotate(t.lib[bullet.texture_name], degrees(bullet.angle_from_y))
+        rotated_img = pygame.transform.rotate(t.lib[bullet.texture_name], degrees(bullet.angle))
         bullet.init_texture(rotated_img)
         bullet.draw_self(window)
 
@@ -120,32 +111,21 @@ def draw_background(window):
 class MainMenu:
     def __init__(self, window):
         self.window = window
-        self.nickname = ''
+        self.nickname = client_nickname
         self.texture_name = 'YELLOW_SPACE_SHIP'
         self.mode = False
-        self.menu = pygame_menu.Menu('Welcome', width, height,
+        self.menu = pygame_menu.Menu('Main Menu', width, height,
                                      theme=pygame_menu.themes.THEME_BLUE)
-        self.nickname_input = self.menu.add.text_input('Name :', default='', onchange=self.__update_nickname)
+        self.nickname_input = self.menu.add.text_input('Name :', default=client_nickname,
+                                                       onchange=self.__update_nickname)
         self.plane_preview = self.menu.add.image(
             image_path=t.menu[self.texture_name],
             padding=(25, 0, 0, 0)  # top, right, bottom, left
         )
         self.plane_selector = self.menu.add.selector('Type :', [('Yellow', 1), ('Blue', 2)],
                                                      onchange=self.__update_texture)
-        # self.join_or_host = self.menu.add.toggle_switch(
-        #     'host or join',
-        #     # self.mode,
-        #     # font_size=20,
-        #     margin=(0, 5),
-        #     onchange=self.__update_mode,
-        #     # state_text_font_color=((0, 0, 0), (0, 0, 0)),
-        #     # state_text_font_size=15,
-        #     # switch_margin=(15, 0),
-        #     width=120,
-        #     state_text=('host','join')
-        # )
-        self.ip_input = self.menu.add.text_input('IP address :', default='localhost', onchange=self.__update_ip_address)
-        self.ip_input = self.menu.add.text_input('port :', default='11451', onchange=self.__update_port)
+        self.ip_input = self.menu.add.text_input('IP address :', default=ip, onchange=self.__update_ip_address)
+        self.ip_input = self.menu.add.text_input('port :', default=port, onchange=self.__update_port)
         self.play_button = self.menu.add.button('Play', main_game)
         self.quit_button = self.menu.add.button('Quit', pygame_menu.events.EXIT)
 
@@ -186,14 +166,12 @@ class MainMenu:
 
 def main_menu():
     pygame.init()
-    m = MainMenu(window)
+    m = MainMenu(win)
     m.mainloop()
 
 
 def main_game():
-    title_font = pygame.font.SysFont("黑体", 60)
-    selection_font = pygame.font.SysFont("黑体", 40)
-
+    game_state = 'running'
     # 初始化网络连接
     n = Network(
         ip=ip,
@@ -242,7 +220,8 @@ def main_game():
         if control_counter == sensitivity:
             control_counter = 0
             # 结算并更新本地在这个时间点后的飞机位置
-            p.update()
+            if game_state == 'running':
+                p.update()
         control_counter += 1
 
         # 让对象保持在屏幕中央
@@ -251,6 +230,7 @@ def main_game():
         data = {
             'pos': p.get_pos(),
             'bullet': control_report['is_shooting'],
+            'pause': control_report['need_pause'],
         }
         # 发送到服务器
         n.send(data)
@@ -258,8 +238,13 @@ def main_game():
         # 服务器返回在这一轮之后的战场情况
         # p.draw_self(window)
         reply = n.receive()
+        game_state = reply.state
         # 客户端根据更新的情况，对画面进行更新
-        redraw(window, reply)
+        if game_state == 'running':
+            redraw(win, reply)
+        if game_state == 'pause':
+            draw_pause_window(win)
+            # redraw(win, reply)
 
 
 if __name__ == '__main__':

@@ -6,27 +6,38 @@ import time
 sys.path.append('../base')
 
 from base.config import setting, window_height, window_width, frame_rate
-from base.enemy import EnemyType2
+from base.enemy import EnemyType1,EnemyType2, EnemyType3
+from base.missile import Missile
+from base.animation import Animation
 from base.shared_lib import t
+from util import out_of_screen, distance_between
 
 
 class Game:
     def __init__(self, game_id, difficulty='easy'):
+        self.state = 'running'
         self.game_id = game_id
         self.enemies = []
         self.players = {}
         self.hostile_bullets = []
+        self.missile = []
         self.friendly_bullets = []
         self.props = []
+
         self.running_state = False
+        self.pause_owner = ''
+
         self.difficult = difficulty
         self.start_time = time.time()
 
         self.current_time = self.start_time
+        self.pause_time_point = self.current_time
+        self.recover_from_pause = False
         self.timer = {
             'game_tick': 0,
             'enemy_spawn': 0,
         }
+
         self.random = random.Random()
         self.random.seed(self.current_time)
 
@@ -34,6 +45,7 @@ class Game:
             'hostile_bullet_explosion': [],
             'friendly_bullet_explosion': [],
             'enemy_catch_fire': [],
+            'enemy_explosion': [],
         }
 
     def enemy_spawn(self, pos=(0, 0), enemy_type=1):
@@ -41,11 +53,10 @@ class Game:
         # enemy_type = self.random.randint(1,2)
         if pos == (0, 0):
             pos = self.random.randint(0, window_width - 100), 30
-
         if self.timer['enemy_spawn'] > setting[self.difficult]['enemy_spawn_time']:
-            # ch = random.randint(1, 2)
+            ch = random.randint(1, 2)
             temp = None
-            if enemy_type == 1:
+            if ch == 1:
                 temp = EnemyType2(
                     basic_setting={
                         'x': pos[0],
@@ -61,6 +72,27 @@ class Game:
                     },
                     enemy_setting={
                         'fire_cool_down_frame': 45,
+                        'last_fire': 40,
+                    },
+                )
+                temp.init_move((0, 2))
+            elif ch == 2:
+                temp = EnemyType3(
+                    basic_setting={
+                        'x': pos[0],
+                        'y': pos[1],
+                        'size': t.lib['GREEN_SPACE_SHIP'].get_size(),
+                        'texture_name': 'GREEN_SPACE_SHIP'
+                    },
+                    inertia_setting={
+                        'max_speed': 2
+                    },
+                    plane_setting={
+                        'health': setting[self.difficult]['enemy_health']['enemy_1']
+                    },
+                    enemy_setting={
+                        'fire_cool_down_frame': 90,
+                        'last_fire': 80
                     },
                 )
                 temp.init_move((0, 2))
@@ -71,8 +103,15 @@ class Game:
         # 推算自从上次update以来经过的时间，并更新所有寄存器的值
         time_past = time.time() - self.current_time
         self.current_time = time.time()
-        for key, value in self.timer.items():
-            self.timer[key] += time_past
+        if self.recover_from_pause:
+            self.recover_from_pause = False
+            time_past = 0
+            for key, value in self.timer.items():
+                self.timer[key] += time_past
+            # print(self.timer)
+        else:
+            for key, value in self.timer.items():
+                self.timer[key] += time_past
         return self.timer['game_tick']
 
     def enemy_move(self):
@@ -91,6 +130,31 @@ class Game:
             if flag:
                 self.friendly_bullets.append(b)
 
+    def player_self_defense(self):
+        for key, player in self.players.items():
+            missile_list = []
+            for b in self.hostile_bullets:
+                if isinstance(b, Missile):
+                    missile_list.append(b)
+            distance_list = []
+
+            if len(missile_list) == 0:
+                player.set_target(None)
+            else:
+                for m in missile_list:
+                    distance_list.append(distance_between(player.get_center(), m.get_center()))
+                min_distance = 1E6
+                index_min = None
+                for index, distance in enumerate(distance_list):
+                    if distance < min_distance:
+                        min_distance = distance
+                        index_min = index
+                if index_min is not None:
+                    player.set_target(missile_list[index_min])
+            player.update()
+
+
+
     def ouf_of_boarder_handler(self):
         for enemy in self.enemies:
             # 说明已经飞出屏幕
@@ -98,8 +162,15 @@ class Game:
                 self.enemies.remove(enemy)
 
         for b in self.hostile_bullets:
-            if b.get_center()[1] > window_height + 100:
+            if isinstance(b, Missile):
+                if out_of_screen(b):
+                    self.hostile_bullets.remove(b)
+            elif out_of_screen(b):
                 self.hostile_bullets.remove(b)
+
+        for b in self.friendly_bullets:
+            if out_of_screen(b):
+                self.friendly_bullets.remove(b)
 
     def collision_detection(self):
         for p_id, player in self.players.items():
@@ -117,6 +188,13 @@ class Game:
                 if self.collide(enemy, f_bullet, enemy_mask, bullet_mask):
                     self.get_hit(enemy, f_bullet.damage)
                     self.friendly_bullets.remove(f_bullet)
+        for p_id, player in self.players.items():
+            player_mask = pygame.mask.from_surface(t.lib[player.texture_name])
+            for enemy in self.enemies:
+                enemy_mask = pygame.mask.from_surface(t.lib[enemy.texture_name])
+                if self.collide(player, enemy,player_mask, enemy_mask):
+                    self.instant_die(enemy)
+
 
     @staticmethod
     def collide(obj1, obj2, mask1, mask2):
@@ -128,8 +206,16 @@ class Game:
     def get_hit(plane_obj, amount):
         plane_obj.hit(amount)
 
+    @staticmethod
+    def instant_die(plane_obj):
+        plane_obj.health = 0
+
     def hostile_bullets_move(self):
         for b in self.hostile_bullets:
+            if isinstance(b, Missile):
+                self.detect_missile_expire(b)
+                if self.missile_die_detection(b):
+                    self.hostile_bullets.remove(b)
             b.update()
 
     def friendly_bullets_move(self):
@@ -139,11 +225,31 @@ class Game:
     def enemy_die_detection(self):
         for enemy in self.enemies:
             if enemy.health <= 0:
+                temp = Animation(enemy.get_center(), (0, 0), 'explosion1')
+                self.animation['enemy_explosion'].append(temp)
                 self.enemies.remove(enemy)
-
 
     def player_failed_detection(self):
         pass
+
+    def update_animation(self):
+        for key, animate_list in self.animation.items():
+            for animate in animate_list:
+                animate.update()
+
+    def detect_animation_expire(self):
+        for key, animate_list in self.animation.items():
+            for animate in animate_list:
+                if animate.counter >= animate.length:
+                    self.animation[key].remove(animate)
+
+    def detect_missile_expire(self, missile):
+            if missile.life_time < 0:
+                missile.fuel = False
+
+    def missile_die_detection(self, missile):
+        if missile.health <= 0:
+            return True
 
     @staticmethod
     def obj_keep_in_screen(obj):
@@ -177,4 +283,11 @@ class Game:
 
         self.collision_detection()
         self.enemy_die_detection()
+
+        self.update_animation()
+        self.detect_animation_expire()
+
+        self.player_self_defense()
+
         self.ouf_of_boarder_handler()
+

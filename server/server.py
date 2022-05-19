@@ -5,22 +5,28 @@ import time
 
 from base.config import window_height, ip, port
 from base.game import Game
-from base.player import Player
+from base.player import Player2, Player3
 
 
 def client_thread(connection, game_id, player_id, game_state):
     if game_state[game_id] != 'running':
         game_state[game_id] = 'running'
 
-    player_attr = pickle.loads(connection.recv(2048* 10))
+    player_attr = pickle.loads(connection.recv(2048 * 10))
     player_attr['basic_setting']['x'] = 100
     player_attr['basic_setting']['y'] = window_height - 100
-    player = Player(basic_setting=player_attr['basic_setting'],
-                    inertia_setting=player_attr['inertia_setting'],
-                    plane_setting=player_attr['plane_setting'],
-                    player_setting=player_attr['player_setting'],
-                    )
-
+    if player_attr['basic_setting']['texture_name'] == 'YELLOW_SPACE_SHIP':
+        player = Player2(basic_setting=player_attr['basic_setting'],
+                         inertia_setting=player_attr['inertia_setting'],
+                         plane_setting=player_attr['plane_setting'],
+                         player_setting=player_attr['player_setting'],
+                         )
+    elif player_attr['basic_setting']['texture_name'] == 'BLUE_SPACE_SHIP':
+        player = Player3(basic_setting=player_attr['basic_setting'],
+                         inertia_setting=player_attr['inertia_setting'],
+                         plane_setting=player_attr['plane_setting'],
+                         player_setting=player_attr['player_setting'],
+                         )
     connection.send(pickle.dumps(
         (player_id, player)
     ))
@@ -33,8 +39,19 @@ def client_thread(connection, game_id, player_id, game_state):
         try:
             data = pickle.loads(connection.recv(2048 * 10))
             current_player.set_pos(data['pos'])
+
             if data['bullet'] is not None:
                 current_player.want_to_shoot = data['bullet']
+            if current_game.pause_owner == '' or current_game.pause_owner == player_id:
+                if data['pause']:
+                    current_game.pause_owner = player_id
+                    current_game.state = 'pause'
+                    game_state[game_id] = 'idle'
+                else:
+                    current_game.state = 'running'
+                    game_state[game_id] = 'running'
+                    current_game.pause_owner = ''
+
             connection.send(pickle.dumps(current_game))
             if not data:
                 break
@@ -70,8 +87,10 @@ def game_thread(game_state, games, game_id):
             games[game_id].update()
             # time.sleep(0.005)
             game_semaphore[game_id].release()
+            last_time = time.time()
         elif game_state[game_id] == 'idle':
-            time.sleep(0.1)
+            games[game_id].recover_from_pause = True
+            time.sleep(0.2)
         elif game_state[game_id] == 'stopped':
             break
 

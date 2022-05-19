@@ -1,5 +1,6 @@
-from plane import Plane
-from bullet import BulletSimple
+from base.plane import Plane
+from base.bullet import BulletSimple
+from base.defense_laser import DefenseLaser
 from shared_lib import t
 
 
@@ -17,10 +18,12 @@ class Player(Plane):
         :param height: 初始时对象的高度
         :param properties: 其余玩家对象需要的各种属性，例如生命值，技能量等
         """
+        self.defense_laser = []
         super().__init__(basic_setting=properties['basic_setting'],
                          inertia_setting=properties['inertia_setting'],
                          plane_setting=properties['plane_setting'],
                          )
+        self._health_bar_y_offset = self.height + 10
         for key, value in properties['player_setting'].items():
             setattr(self, key, value)
 
@@ -51,3 +54,40 @@ class Player(Plane):
 
         return False, None
 
+    def set_target(self, target):
+        for laser in self.defense_laser:
+            laser.set_target(target)
+
+    def update(self):
+        super().update()
+        for laser in self.defense_laser:
+            laser.update()
+
+    def draw_self(self, window):
+        super().draw_self(window)
+        for laser in self.defense_laser:
+            laser.draw_self(window)
+
+
+class Player2(Player):
+    def __init__(self, **properties):
+        super().__init__(basic_setting=properties['basic_setting'],
+                         inertia_setting=properties['inertia_setting'],
+                         plane_setting=properties['plane_setting'],
+                         player_setting=properties['player_setting'], )
+        self.defense_laser = [
+            DefenseLaser(self, offset=(-15, 30)),
+            DefenseLaser(self, offset=(15, 30)),
+            DefenseLaser(self, offset=(0, -10)),
+        ]
+
+
+class Player3(Player):
+    def __init__(self, **properties):
+        super().__init__(basic_setting=properties['basic_setting'],
+                         inertia_setting=properties['inertia_setting'],
+                         plane_setting=properties['plane_setting'],
+                         player_setting=properties['player_setting'], )
+        self.defense_laser = [
+            DefenseLaser(self)
+        ]

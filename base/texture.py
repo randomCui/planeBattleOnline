@@ -16,8 +16,10 @@ class Texture:
             'GREEN_LASER': pygame.image.load(os.path.join("..", "assets", "pixel_laser_green.png")),
             'BLUE_LASER': pygame.image.load(os.path.join("..", "assets", "pixel_laser_blue.png")),
             'YELLOW_LASER': pygame.image.load(os.path.join("..", "assets", "pixel_laser_yellow.png")),
-            'BG': pygame.transform.scale(pygame.image.load(os.path.join("..","assets", "background-black.png")),
-                                        (width, height))
+            'BG': pygame.transform.scale(pygame.image.load(os.path.join("..", "assets", "background-black.png")),
+                                         (width, height)
+                                         ),
+            'ENERGY_BALL': pygame.image.load(os.path.join("..", "assets", "energy_ball.png")),
         }
         self.menu = {
             'YELLOW_SPACE_SHIP': pygame_menu.BaseImage(
