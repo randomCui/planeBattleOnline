@@ -72,6 +72,7 @@ class Game:
                     },
                     enemy_setting={
                         'fire_cool_down_frame': 45,
+                        'last_fire': 40,
                     },
                 )
                 temp.init_move((0, 2))
@@ -91,6 +92,7 @@ class Game:
                     },
                     enemy_setting={
                         'fire_cool_down_frame': 90,
+                        'last_fire': 80
                     },
                 )
                 temp.init_move((0, 2))

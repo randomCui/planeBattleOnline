@@ -23,6 +23,7 @@ class Player(Plane):
                          inertia_setting=properties['inertia_setting'],
                          plane_setting=properties['plane_setting'],
                          )
+        self._health_bar_y_offset = self.height + 10
         for key, value in properties['player_setting'].items():
             setattr(self, key, value)
 

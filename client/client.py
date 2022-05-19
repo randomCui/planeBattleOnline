@@ -17,7 +17,6 @@ from base.config import window_width as width
 from network import Network
 from base.config import ip, port, sensitivity
 
-from multiprocessing import Process
 
 # width = 500
 # height = 500
@@ -35,7 +34,7 @@ client_nickname = ''
 client_ip = 'localhost'
 client_port = 11451
 
-item_font = pygame.font.SysFont("arial", 30)
+nickname_font = pygame.font.SysFont("calibri", 30)
 
 
 def redraw(window, game):
@@ -71,7 +70,7 @@ def draw_players(window, players):
     for p_id, player in players.items():
         player.init_texture(t.lib[player.texture_name])
         player.draw_self(window)
-        title_label = item_font.render(player.nickname, True, (255, 255, 255))
+        title_label = nickname_font.render(player.nickname, True, (255, 255, 255))
         window.blit(title_label, (player.get_center()[0] - title_label.get_width() / 2, player.y - 30))
 
 
@@ -88,29 +87,6 @@ def draw_friendly_bullets(window, bullets):
         rotated_img = pygame.transform.rotate(t.lib[bullet.texture_name], degrees(bullet.angle))
         bullet.init_texture(rotated_img)
         bullet.draw_self(window)
-
-
-# def rotate_around_pivot(window, image, pos, pivot_pos, angle):
-#     # offset from pivot to center
-#     image_rect = image.get_rect(topleft=(pos[0] - pivot_pos[0], pos[1] - pivot_pos[1]))
-#     offset_center_to_pivot = pygame.math.Vector2(pos) - image_rect.center
-#
-#     # rotated offset from pivot to center
-#     rotated_offset = offset_center_to_pivot.rotate(-angle)
-#
-#     # rotated image center
-#     rotated_image_center = (pos[0] - rotated_offset.x, pos[1] - rotated_offset.y)
-#
-#     # get a rotated image
-#     rotated_image = pygame.transform.rotate(image, angle)
-#     rotated_image_rect = rotated_image.get_rect(center=rotated_image_center)
-#
-#     # rotate and blit the image
-#     window.blit(rotated_image, rotated_image_rect)
-#
-#     # draw rectangle around the image
-#     # pygame.draw.rect(window, (255, 0, 0), (*rotated_image_rect.topleft, *rotated_image.get_size()), 2)
-#     return rotated_image
 
 
 def keep_in_screen_client(player):
@@ -251,7 +227,6 @@ def main_game():
         # 让对象保持在屏幕中央
         keep_in_screen_client(p)
         # 组织好向服务器发送的数据
-        print(control_report['need_pause'])
         data = {
             'pos': p.get_pos(),
             'bullet': control_report['is_shooting'],
@@ -264,7 +239,6 @@ def main_game():
         # p.draw_self(window)
         reply = n.receive()
         game_state = reply.state
-        print(game_state)
         # 客户端根据更新的情况，对画面进行更新
         if game_state == 'running':
             redraw(win, reply)
