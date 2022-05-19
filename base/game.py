@@ -8,9 +8,20 @@ sys.path.append('../base')
 from base.config import setting, window_height, window_width, frame_rate
 from base.enemy import EnemyType1,EnemyType2, EnemyType3
 from base.missile import Missile
+from base.boss import BossType1
 from base.animation import Animation
 from base.shared_lib import t
 from util import out_of_screen, distance_between
+
+
+def detect_missile_expire(missile):
+        if missile.life_time < 0:
+            missile.fuel = False
+
+
+def missile_die_detection(missile):
+    if missile.health <= 0:
+        return True
 
 
 class Game:
@@ -23,6 +34,7 @@ class Game:
         self.missile = []
         self.friendly_bullets = []
         self.props = []
+        self.bosses = []
 
         self.running_state = False
         self.pause_owner = ''
@@ -36,6 +48,7 @@ class Game:
         self.timer = {
             'game_tick': 0,
             'enemy_spawn': 0,
+            'boss_spawn': 100,
         }
 
         self.random = random.Random()
@@ -99,6 +112,34 @@ class Game:
             self.enemies.append(temp)
             self.timer['enemy_spawn'] = 0
 
+    def boss_spawn(self, pos=(0, 0)):
+        if pos == (0, 0):
+            pos = self.random.randint(0, window_width - 100), 30
+        if self.timer['boss_spawn'] > setting[self.difficult]['boss_spawn_time']:
+            ch = random.randint(1, 1)
+            temp = None
+            if ch == 1:
+                temp = BossType1(
+                    basic_setting={
+                        'x': pos[0],
+                        'y': pos[1],
+                        'size': t.lib['BOSS_1'].get_size(),
+                        'texture_name': 'BOSS_1'
+                    },
+                    inertia_setting={
+                        'max_speed': 0.5
+                    },
+                    plane_setting={
+                        'health': setting[self.difficult]['boss_health']['boss_1']
+                    },
+                    boss_setting={
+                        'fire_cool_down_frame': 45,
+                        'last_fire': 0,
+                    },
+                )
+            self.bosses.append(temp)
+            self.timer['boss_spawn'] = 0
+
     def update_timer(self):
         # 推算自从上次update以来经过的时间，并更新所有寄存器的值
         time_past = time.time() - self.current_time
@@ -118,9 +159,19 @@ class Game:
         for enemy in self.enemies:
             enemy.update()
 
+    def boss_move(self):
+        for boss in self.bosses:
+            boss.update()
+
     def enemy_shoot(self):
         for enemy in self.enemies:
             flag, b = enemy.shoot(self.players)
+            if flag:
+                self.hostile_bullets.append(b)
+
+    def boss_shoot(self):
+        for boss in self.bosses:
+            flag, b = boss.shoot(self.players)
             if flag:
                 self.hostile_bullets.append(b)
 
@@ -188,11 +239,27 @@ class Game:
                 if self.collide(enemy, f_bullet, enemy_mask, bullet_mask):
                     self.get_hit(enemy, f_bullet.damage)
                     self.friendly_bullets.remove(f_bullet)
+
+        for boss in self.bosses:
+            boss_mask = pygame.mask.from_surface(t.lib[boss.texture_name])
+            for f_bullet in self.friendly_bullets:
+                bullet_mask = pygame.mask.from_surface(t.lib[f_bullet.texture_name])
+                if self.collide(boss, f_bullet, boss_mask, bullet_mask):
+                    self.get_hit(boss, f_bullet.damage)
+                    self.friendly_bullets.remove(f_bullet)
+
         for p_id, player in self.players.items():
             player_mask = pygame.mask.from_surface(t.lib[player.texture_name])
             for enemy in self.enemies:
                 enemy_mask = pygame.mask.from_surface(t.lib[enemy.texture_name])
                 if self.collide(player, enemy,player_mask, enemy_mask):
+                    self.instant_die(enemy)
+
+        for p_id, player in self.players.items():
+            player_mask = pygame.mask.from_surface(t.lib[player.texture_name])
+            for boss in self.enemies:
+                boss_mask = pygame.mask.from_surface(t.lib[boss.texture_name])
+                if self.collide(player, boss,player_mask, boss_mask):
                     self.instant_die(enemy)
 
 
@@ -213,8 +280,8 @@ class Game:
     def hostile_bullets_move(self):
         for b in self.hostile_bullets:
             if isinstance(b, Missile):
-                self.detect_missile_expire(b)
-                if self.missile_die_detection(b):
+                detect_missile_expire(b)
+                if missile_die_detection(b):
                     self.hostile_bullets.remove(b)
             b.update()
 
@@ -229,6 +296,13 @@ class Game:
                 self.animation['enemy_explosion'].append(temp)
                 self.enemies.remove(enemy)
 
+    def boss_die_detection(self):
+        for boss in self.bosses:
+            if boss.health <= 0:
+                temp = Animation(boss.get_center(), (0,0), 'explosion1')
+                self.animation['enemy_explosion'].append(temp)
+                self.bosses.remove(boss)
+
     def player_failed_detection(self):
         pass
 
@@ -242,14 +316,6 @@ class Game:
             for animate in animate_list:
                 if animate.counter >= animate.length:
                     self.animation[key].remove(animate)
-
-    def detect_missile_expire(self, missile):
-            if missile.life_time < 0:
-                missile.fuel = False
-
-    def missile_die_detection(self, missile):
-        if missile.health <= 0:
-            return True
 
     @staticmethod
     def obj_keep_in_screen(obj):
@@ -274,8 +340,14 @@ class Game:
         self.timer['game_tick'] = 0
         self.obj_keep_in_screen(self.players)
         self.enemy_spawn()
+        self.boss_spawn()
+
         self.enemy_move()
         self.enemy_shoot()
+
+        self.boss_move()
+        self.boss_shoot()
+
         self.hostile_bullets_move()
 
         self.player_shoot()
@@ -283,6 +355,7 @@ class Game:
 
         self.collision_detection()
         self.enemy_die_detection()
+        self.boss_die_detection()
 
         self.update_animation()
         self.detect_animation_expire()

@@ -72,7 +72,7 @@ class Plane(InertiaObject):
         pygame.draw.rect(window,
                          self._health_bar_bottom_color_,
                          pygame.rect.Rect(
-                             self.x+self._health_bar_x_offset_,
+                             self.x + self._health_bar_x_offset_,
                              self.y + self._health_bar_y_offset,
                              self._health_bar_width_,
                              10

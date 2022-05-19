@@ -44,6 +44,7 @@ def redraw(window, game):
     draw_hostile_bullets(window, game.hostile_bullets)
     draw_friendly_bullets(window, game.friendly_bullets)
     draw_global_animate(window, game.animation)
+    draw_bosses(window, game.bosses)
 
     pygame.display.update()
 
@@ -64,6 +65,12 @@ def draw_enemies(window, enemies):
     for enemy in enemies:
         enemy.init_texture(t.lib[enemy.texture_name])
         enemy.draw_self(window)
+
+
+def draw_bosses(window, bosses):
+    for boss in bosses:
+        boss.init_texture(t.lib[boss.texture_name])
+        boss.draw_self(window)
 
 
 def draw_players(window, players):

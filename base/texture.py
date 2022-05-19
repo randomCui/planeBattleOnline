@@ -20,6 +20,7 @@ class Texture:
                                          (width, height)
                                          ),
             'ENERGY_BALL': pygame.image.load(os.path.join("..", "assets", "energy_ball.png")),
+            'BOSS_1': pygame.image.load(os.path.join("..", "assets", "boss.png")),
         }
         self.menu = {
             'YELLOW_SPACE_SHIP': pygame_menu.BaseImage(
