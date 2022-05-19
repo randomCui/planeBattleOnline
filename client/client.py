@@ -21,7 +21,7 @@ from multiprocessing import Process
 
 # width = 500
 # height = 500
-window = pygame.display.set_mode((width, height))
+win = pygame.display.set_mode((width, height))
 pygame.display.set_caption("Client")
 pygame.font.init()
 title_font = pygame.font.SysFont("黑体", 30)
@@ -57,12 +57,8 @@ def draw_global_animate(window, animation):
 
 def draw_hostile_bullets(window, bullets):
     for bullet in bullets:
-        rotate_around_pivot(window,
-                            t.lib[bullet.texture_name],
-                            (bullet.x + bullet.width / 2, bullet.y + bullet.height / 2),
-                            (bullet.width / 2, bullet.height / 2),
-                            degrees(bullet.angle_from_y)
-                            )
+        bullet.init_texture(t.lib[bullet.texture_name])
+        bullet.draw_self(window)
 
 
 def draw_enemies(window, enemies):
@@ -75,7 +71,7 @@ def draw_players(window, players):
     for p_id, player in players.items():
         player.init_texture(t.lib[player.texture_name])
         player.draw_self(window)
-        title_label = item_font.render(player.nickname, 1, (255, 255, 255))
+        title_label = item_font.render(player.nickname, True, (255, 255, 255))
         window.blit(title_label, (player.get_center()[0] - title_label.get_width() / 2, player.y - 30))
 
 
@@ -87,34 +83,34 @@ def draw_pause_window(window):
     pygame.display.update()
 
 
-def rotate_around_pivot(window, image, pos, pivot_pos, angle):
-    # offset from pivot to center
-    image_rect = image.get_rect(topleft=(pos[0] - pivot_pos[0], pos[1] - pivot_pos[1]))
-    offset_center_to_pivot = pygame.math.Vector2(pos) - image_rect.center
-
-    # roatated offset from pivot to center
-    rotated_offset = offset_center_to_pivot.rotate(-angle)
-
-    # roatetd image center
-    rotated_image_center = (pos[0] - rotated_offset.x, pos[1] - rotated_offset.y)
-
-    # get a rotated image
-    rotated_image = pygame.transform.rotate(image, angle)
-    rotated_image_rect = rotated_image.get_rect(center=rotated_image_center)
-
-    # rotate and blit the image
-    window.blit(rotated_image, rotated_image_rect)
-
-    # draw rectangle around the image
-    # pygame.draw.rect(window, (255, 0, 0), (*rotated_image_rect.topleft, *rotated_image.get_size()), 2)
-    return rotated_image
-
-
 def draw_friendly_bullets(window, bullets):
     for bullet in bullets:
-        rotated_img = pygame.transform.rotate(t.lib[bullet.texture_name], degrees(bullet.angle_from_y))
+        rotated_img = pygame.transform.rotate(t.lib[bullet.texture_name], degrees(bullet.angle))
         bullet.init_texture(rotated_img)
         bullet.draw_self(window)
+
+
+# def rotate_around_pivot(window, image, pos, pivot_pos, angle):
+#     # offset from pivot to center
+#     image_rect = image.get_rect(topleft=(pos[0] - pivot_pos[0], pos[1] - pivot_pos[1]))
+#     offset_center_to_pivot = pygame.math.Vector2(pos) - image_rect.center
+#
+#     # rotated offset from pivot to center
+#     rotated_offset = offset_center_to_pivot.rotate(-angle)
+#
+#     # rotated image center
+#     rotated_image_center = (pos[0] - rotated_offset.x, pos[1] - rotated_offset.y)
+#
+#     # get a rotated image
+#     rotated_image = pygame.transform.rotate(image, angle)
+#     rotated_image_rect = rotated_image.get_rect(center=rotated_image_center)
+#
+#     # rotate and blit the image
+#     window.blit(rotated_image, rotated_image_rect)
+#
+#     # draw rectangle around the image
+#     # pygame.draw.rect(window, (255, 0, 0), (*rotated_image_rect.topleft, *rotated_image.get_size()), 2)
+#     return rotated_image
 
 
 def keep_in_screen_client(player):
@@ -139,32 +135,21 @@ def draw_background(window):
 class MainMenu:
     def __init__(self, window):
         self.window = window
-        self.nickname = ''
+        self.nickname = client_nickname
         self.texture_name = 'YELLOW_SPACE_SHIP'
         self.mode = False
-        self.menu = pygame_menu.Menu('Welcome', width, height,
+        self.menu = pygame_menu.Menu('Main Menu', width, height,
                                      theme=pygame_menu.themes.THEME_BLUE)
-        self.nickname_input = self.menu.add.text_input('Name :', default='', onchange=self.__update_nickname)
+        self.nickname_input = self.menu.add.text_input('Name :', default=client_nickname,
+                                                       onchange=self.__update_nickname)
         self.plane_preview = self.menu.add.image(
             image_path=t.menu[self.texture_name],
             padding=(25, 0, 0, 0)  # top, right, bottom, left
         )
         self.plane_selector = self.menu.add.selector('Type :', [('Yellow', 1), ('Blue', 2)],
                                                      onchange=self.__update_texture)
-        # self.join_or_host = self.menu.add.toggle_switch(
-        #     'host or join',
-        #     # self.mode,
-        #     # font_size=20,
-        #     margin=(0, 5),
-        #     onchange=self.__update_mode,
-        #     # state_text_font_color=((0, 0, 0), (0, 0, 0)),
-        #     # state_text_font_size=15,
-        #     # switch_margin=(15, 0),
-        #     width=120,
-        #     state_text=('host','join')
-        # )
-        self.ip_input = self.menu.add.text_input('IP address :', default='localhost', onchange=self.__update_ip_address)
-        self.ip_input = self.menu.add.text_input('port :', default='11451', onchange=self.__update_port)
+        self.ip_input = self.menu.add.text_input('IP address :', default=ip, onchange=self.__update_ip_address)
+        self.ip_input = self.menu.add.text_input('port :', default=port, onchange=self.__update_port)
         self.play_button = self.menu.add.button('Play', main_game)
         self.quit_button = self.menu.add.button('Quit', pygame_menu.events.EXIT)
 
@@ -205,7 +190,7 @@ class MainMenu:
 
 def main_menu():
     pygame.init()
-    m = MainMenu(window)
+    m = MainMenu(win)
     m.mainloop()
 
 
@@ -280,9 +265,9 @@ def main_game():
         game_state = reply.state
         # 客户端根据更新的情况，对画面进行更新
         if game_state == 'running':
-            redraw(window, reply)
+            redraw(win, reply)
         if game_state == 'pause':
-            draw_pause_window(window)
+            draw_pause_window(win)
             # redraw(window, reply)
 
 

@@ -183,7 +183,6 @@ class Game:
     def hostile_bullets_move(self):
         for b in self.hostile_bullets:
             if isinstance(b, Missile):
-                print('fuck')
                 self.detect_missile_expire(b)
             b.update()
 

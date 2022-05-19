@@ -11,8 +11,6 @@ class Bullet(InertiaObject):
         self.animation_list = []
         self.not_destroyed = True
 
-        self.angle_from_y = 0
-
         for key, value in properties['bullet_setting'].items():
             setattr(self, key, value)
 
@@ -46,4 +44,4 @@ class BulletAiming(Bullet):
         distance = distance_between(self.target, self.get_center())
         self.vx = self.max_speed * (target_vector[0] / distance)
         self.vy = self.max_speed * (target_vector[1] / distance)
-        self.angle_from_y = vector_angle_from_y(target_vector)
+        self.angle = vector_angle_from_y(target_vector)

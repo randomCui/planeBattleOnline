@@ -29,9 +29,6 @@ class InertiaObject(GameObject):
     def get_pos(self):
         return self.x, self.y
 
-    def get_center(self):
-        return self.x + self.width / 2, self.y + self.height / 2
-
     def set_speed_vector(self, vector):
         self.vx = vector[0]
         self.vy = vector[1]

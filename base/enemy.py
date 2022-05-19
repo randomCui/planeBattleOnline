@@ -66,7 +66,7 @@ class EnemyType2(Plane):
             angle_from_y = vector_angle_from_y(target_vector)
 
             # 如果已经超过攻击角度，就放弃攻击
-            if abs(angle_from_y) > pi / 3 or self.y > target[1]:
+            if abs(angle_from_y) > 60 or self.y > target[1]:
                 return False, None
 
             temp = BulletAiming(
@@ -82,6 +82,7 @@ class EnemyType2(Plane):
                 bullet_setting={
                     'damage': 1,
                     'target': target,
+                    'angle': angle_from_y,
                 },
             )
             return True, temp
@@ -115,7 +116,7 @@ class EnemyType3(Enemy):
             temp = Missile(
                 basic_setting={
                     'x': self.get_center()[0] - t.lib['ENERGY_BALL'].get_size()[0] / 2,
-                    'y': self.get_center()[1] - 30,
+                    'y': self.get_center()[1] + 30,
                     'size': t.lib['ENERGY_BALL'].get_size(),
                     'texture_name': 'ENERGY_BALL',
                 },

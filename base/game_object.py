@@ -29,6 +29,9 @@ class GameObject:
         else:
             raise ValueError("Texture cannot be None")
 
+    def get_center(self):
+        return self.x + self.width / 2, self.y + self.height / 2
+
     def draw_self(self, window):
         """
         将游戏中的飞行物体直接画在对应的窗口中
@@ -38,7 +41,28 @@ class GameObject:
         """
         # 假设在显示图形之前图像已经被初始化完成
         assert self.texture is not None
-        window.blit(self.texture, (self.x, self.y))
+        self.rotate_around_pivot(window)
+
+    def rotate_around_pivot(self, window):
+        # offset from pivot to center
+        image_rect = self.texture.get_rect(topleft=(self.x, self.y))
+        offset_center_to_pivot = pygame.math.Vector2((self.x, self.y)) - image_rect.center
+
+        # rotated offset from pivot to center
+        rotated_offset = offset_center_to_pivot.rotate(-self.angle)
+
+        # rotated image center
+        rotated_image_center = (self.x - rotated_offset.x, self.y - rotated_offset.y)
+
+        # get a rotated image
+        rotated_image = pygame.transform.rotate(self.texture, self.angle)
+        rotated_image_rect = rotated_image.get_rect(topleft=(self.x,self.y),center=rotated_image_center)
+
+        # rotate and blit the image
+        window.blit(rotated_image, rotated_image_rect)
+
+        # draw rectangle around the image
+        pygame.draw.rect(window, (255, 0, 0), (*rotated_image_rect.topleft, *rotated_image.get_size()), 2)
 
     def __str__(self):
         """
