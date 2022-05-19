@@ -1,5 +1,6 @@
-from plane import Plane
-from bullet import BulletSimple
+from base.plane import Plane
+from base.bullet import BulletSimple
+from base.defense_laser import DefenseLaser
 from shared_lib import t
 
 
@@ -23,6 +24,11 @@ class Player(Plane):
                          )
         for key, value in properties['player_setting'].items():
             setattr(self, key, value)
+
+        self.defense_laser = DefenseLaser(
+            self
+        )
+
 
     def shoot(self, **kwargs):
         if self.want_to_shoot:
@@ -50,4 +56,15 @@ class Player(Plane):
         self.last_fire += 1
 
         return False, None
+
+    def set_target(self, target):
+        self.defense_laser.set_target(target)
+
+    def update(self):
+        super().update()
+        self.defense_laser.update()
+
+    def draw_self(self, window):
+        super().draw_self(window)
+        self.defense_laser.draw_self(window)
 

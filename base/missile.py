@@ -4,6 +4,7 @@ from util import adjust_move_vector, vector_from_A_to_B, distance_between
 
 class Missile(Bullet):
     def __init__(self, **properties):
+        self.health = 0
         super().__init__(
             basic_setting=properties['basic_setting'],
             inertia_setting=properties['inertia_setting'],
@@ -27,3 +28,7 @@ class Missile(Bullet):
             self.change_pos(move_vector)
             if distance_between(self.get_center(), self.target_object.get_center()) < self.approach_threshold:
                 self.damping()
+
+    def hit(self, amount):
+        self.health -= amount
+        return self.health <= 0

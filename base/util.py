@@ -1,4 +1,4 @@
-from math import sqrt, pow, atan, degrees
+from math import sqrt, pow, atan, degrees, hypot, acos
 from config import window_height as height
 from config import window_width as width
 
@@ -31,3 +31,21 @@ def out_of_screen(obj):
         return True
     return False
 
+
+def angle(vector1, vector2):
+    x1, y1 = vector1
+    x2, y2 = vector2
+    inner_product = x1 * x2 + y1 * y2
+    len1 = hypot(x1, y1)
+    len2 = hypot(x2, y2)
+    print(acos(inner_product / (len1 * len2)))
+    return acos(inner_product / (len1 * len2))
+
+
+def calculate_end_point(shoot_vector, length):
+    total_distance = (shoot_vector[0]**2+shoot_vector[1]**2)**0.5
+    if total_distance != 0:
+        percentage = length/total_distance
+        return shoot_vector[0]*percentage,shoot_vector[1]*percentage
+    else:
+        return shoot_vector

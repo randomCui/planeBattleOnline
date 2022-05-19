@@ -124,6 +124,7 @@ class EnemyType3(Enemy):
                     'max_speed': 5,
                 },
                 missile_setting={
+                    'health': 5,
                     'damage': 1,
                     'target': target,
                     'target_object': target_object,

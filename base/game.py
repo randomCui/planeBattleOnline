@@ -10,7 +10,7 @@ from base.enemy import EnemyType1,EnemyType2, EnemyType3
 from base.missile import Missile
 from base.animation import Animation
 from base.shared_lib import t
-from util import out_of_screen
+from util import out_of_screen, distance_between
 
 
 class Game:
@@ -87,7 +87,7 @@ class Game:
                         'health': setting[self.difficult]['enemy_health']['enemy_1']
                     },
                     enemy_setting={
-                        'fire_cool_down_frame': 45,
+                        'fire_cool_down_frame': 90,
                     },
                 )
                 temp.init_move((0, 2))
@@ -124,6 +124,31 @@ class Game:
             flag, b = value.shoot()
             if flag:
                 self.friendly_bullets.append(b)
+
+    def player_self_defense(self):
+        for key, player in self.players.items():
+            missile_list = []
+            for b in self.hostile_bullets:
+                if isinstance(b, Missile):
+                    missile_list.append(b)
+            distance_list = []
+
+            if len(missile_list) == 0:
+                player.defense_laser.set_target(None)
+            else:
+                for m in missile_list:
+                    distance_list.append(distance_between(player.get_center(), m.get_center()))
+                min_distance = 1E6
+                index_min = None
+                for index, distance in enumerate(distance_list):
+                    if distance < min_distance:
+                        min_distance = distance
+                        index_min = index
+                if index_min is not None:
+                    player.defense_laser.set_target(missile_list[index_min])
+            player.defense_laser.update()
+
+
 
     def ouf_of_boarder_handler(self):
         for enemy in self.enemies:
@@ -184,6 +209,8 @@ class Game:
         for b in self.hostile_bullets:
             if isinstance(b, Missile):
                 self.detect_missile_expire(b)
+                if self.missile_die_detection(b):
+                    self.hostile_bullets.remove(b)
             b.update()
 
     def friendly_bullets_move(self):
@@ -215,6 +242,9 @@ class Game:
             if missile.life_time < 0:
                 missile.fuel = False
 
+    def missile_die_detection(self, missile):
+        if missile.health <= 0:
+            return True
 
     @staticmethod
     def obj_keep_in_screen(obj):
@@ -251,6 +281,8 @@ class Game:
 
         self.update_animation()
         self.detect_animation_expire()
+
+        self.player_self_defense()
 
         self.ouf_of_boarder_handler()
 
