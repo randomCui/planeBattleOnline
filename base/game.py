@@ -6,9 +6,11 @@ import time
 sys.path.append('../base')
 
 from base.config import setting, window_height, window_width, frame_rate
-from base.enemy import EnemyType1,EnemyType2
+from base.enemy import EnemyType1,EnemyType2, EnemyType3
+from base.missile import Missile
 from base.animation import Animation
 from base.shared_lib import t
+from util import out_of_screen
 
 
 class Game:
@@ -18,6 +20,7 @@ class Game:
         self.enemies = []
         self.players = {}
         self.hostile_bullets = []
+        self.missile = []
         self.friendly_bullets = []
         self.props = []
         self.running_state = False
@@ -47,12 +50,30 @@ class Game:
         # enemy_type = self.random.randint(1,2)
         if pos == (0, 0):
             pos = self.random.randint(0, window_width - 100), 30
-
         if self.timer['enemy_spawn'] > setting[self.difficult]['enemy_spawn_time']:
-            # ch = random.randint(1, 2)
+            ch = random.randint(1, 2)
             temp = None
-            if enemy_type == 1:
+            if ch == 1:
                 temp = EnemyType2(
+                    basic_setting={
+                        'x': pos[0],
+                        'y': pos[1],
+                        'size': t.lib['GREEN_SPACE_SHIP'].get_size(),
+                        'texture_name': 'GREEN_SPACE_SHIP'
+                    },
+                    inertia_setting={
+                        'max_speed': 2
+                    },
+                    plane_setting={
+                        'health': setting[self.difficult]['enemy_health']['enemy_1']
+                    },
+                    enemy_setting={
+                        'fire_cool_down_frame': 45,
+                    },
+                )
+                temp.init_move((0, 2))
+            elif ch == 2:
+                temp = EnemyType3(
                     basic_setting={
                         'x': pos[0],
                         'y': pos[1],
@@ -111,8 +132,15 @@ class Game:
                 self.enemies.remove(enemy)
 
         for b in self.hostile_bullets:
-            if b.get_center()[1] > window_height + 100:
+            if isinstance(b, Missile):
+                if out_of_screen(b):
+                    self.hostile_bullets.remove(b)
+            elif out_of_screen(b):
                 self.hostile_bullets.remove(b)
+
+        for b in self.friendly_bullets:
+            if out_of_screen(b):
+                self.friendly_bullets.remove(b)
 
     def collision_detection(self):
         for p_id, player in self.players.items():
@@ -154,6 +182,9 @@ class Game:
 
     def hostile_bullets_move(self):
         for b in self.hostile_bullets:
+            if isinstance(b, Missile):
+                print('fuck')
+                self.detect_missile_expire(b)
             b.update()
 
     def friendly_bullets_move(self):
@@ -180,6 +211,11 @@ class Game:
             for animate in animate_list:
                 if animate.counter >= animate.length:
                     self.animation[key].remove(animate)
+
+    def detect_missile_expire(self, missile):
+            if missile.life_time < 0:
+                missile.fuel = False
+
 
     @staticmethod
     def obj_keep_in_screen(obj):

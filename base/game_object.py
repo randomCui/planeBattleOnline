@@ -10,6 +10,7 @@ class GameObject:
         # 设置生命值，移动速度等等内容
         self.width = 0
         self.height = 0
+        self.angle = 0
         self.size = None
         self.texture = None
         self.mask = None

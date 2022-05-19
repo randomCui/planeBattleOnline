@@ -29,7 +29,6 @@ selection_font = pygame.font.SysFont("黑体", 40)
 pause_font = pygame.font.SysFont("arial", 70)
 sub_pause_font = pygame.font.SysFont("arial", 40)
 
-
 client_number = 0
 client_texture_name = 'YELLOW_SPACE_SHIP'
 client_nickname = ''
@@ -45,7 +44,7 @@ def redraw(window, game):
     draw_enemies(window, game.enemies)
     draw_hostile_bullets(window, game.hostile_bullets)
     draw_friendly_bullets(window, game.friendly_bullets)
-    draw_global_animate(window,game.animation)
+    draw_global_animate(window, game.animation)
 
     pygame.display.update()
 
@@ -285,7 +284,6 @@ def main_game():
         if game_state == 'pause':
             draw_pause_window(window)
             # redraw(window, reply)
-
 
 
 if __name__ == '__main__':
