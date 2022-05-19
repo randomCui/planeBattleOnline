@@ -134,7 +134,7 @@ class Game:
             distance_list = []
 
             if len(missile_list) == 0:
-                player.defense_laser.set_target(None)
+                player.set_target(None)
             else:
                 for m in missile_list:
                     distance_list.append(distance_between(player.get_center(), m.get_center()))
@@ -145,8 +145,8 @@ class Game:
                         min_distance = distance
                         index_min = index
                 if index_min is not None:
-                    player.defense_laser.set_target(missile_list[index_min])
-            player.defense_laser.update()
+                    player.set_target(missile_list[index_min])
+            player.update()
 
 
 

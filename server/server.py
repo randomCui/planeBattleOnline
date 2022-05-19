@@ -5,7 +5,7 @@ import time
 
 from base.config import window_height, ip, port
 from base.game import Game
-from base.player import Player
+from base.player import Player2, Player3
 
 
 def client_thread(connection, game_id, player_id, game_state):
@@ -15,12 +15,18 @@ def client_thread(connection, game_id, player_id, game_state):
     player_attr = pickle.loads(connection.recv(2048 * 10))
     player_attr['basic_setting']['x'] = 100
     player_attr['basic_setting']['y'] = window_height - 100
-    player = Player(basic_setting=player_attr['basic_setting'],
-                    inertia_setting=player_attr['inertia_setting'],
-                    plane_setting=player_attr['plane_setting'],
-                    player_setting=player_attr['player_setting'],
-                    )
-
+    if player_attr['basic_setting']['texture_name'] == 'YELLOW_SPACE_SHIP':
+        player = Player2(basic_setting=player_attr['basic_setting'],
+                         inertia_setting=player_attr['inertia_setting'],
+                         plane_setting=player_attr['plane_setting'],
+                         player_setting=player_attr['player_setting'],
+                         )
+    elif player_attr['basic_setting']['texture_name'] == 'BLUE_SPACE_SHIP':
+        player = Player3(basic_setting=player_attr['basic_setting'],
+                         inertia_setting=player_attr['inertia_setting'],
+                         plane_setting=player_attr['plane_setting'],
+                         player_setting=player_attr['player_setting'],
+                         )
     connection.send(pickle.dumps(
         (player_id, player)
     ))

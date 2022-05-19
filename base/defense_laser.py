@@ -3,9 +3,10 @@ import pygame
 
 
 class DefenseLaser:
-    def __init__(self, attached_obj):
+    def __init__(self, attached_obj, **kwargs):
         self.attached_obj = attached_obj
-        self.start = attached_obj.x,attached_obj.y
+        self.offset = (0, 0)
+        self.start = attached_obj.x, attached_obj.y
         self.end = self.start
         self.laser_length = 0
         self.target_obj = None
@@ -14,9 +15,12 @@ class DefenseLaser:
         self.changing_target = False
         # self.percent_extended = 0
 
-        # 以下为需要重新通过参数赋值的项
+        # 以下为默认值
         self.max_range = 300
         self.extend_speed_per_frame = 10
+
+        for key, value in kwargs.items():
+            setattr(self, key, value)
 
     def set_target(self, target):
         if self.target_obj is not target:
@@ -24,7 +28,8 @@ class DefenseLaser:
             self.target_obj = target
 
     def update(self):
-        self.start = self.attached_obj.get_center()
+        self.start = self.attached_obj.get_center()[0] + self.offset[0], self.attached_obj.get_center()[1] + \
+                     self.offset[1]
         if self.target_obj is not None:
             # 通过判断是否在最大射程内决定是否要开始展开防卫激光
             distance = distance_between(self.start, self.target_obj.get_center())
@@ -42,13 +47,13 @@ class DefenseLaser:
                     self.is_extending = False
 
                 if self.is_extending is True:
-                    self.laser_length = min(distance, self.laser_length+self.extend_speed_per_frame)
+                    self.laser_length = min(distance, self.laser_length + self.extend_speed_per_frame)
                 else:
-                    self.laser_length = max(0, self.laser_length-self.extend_speed_per_frame)
+                    self.laser_length = max(0, self.laser_length - self.extend_speed_per_frame)
 
                 shoot_vector = vector_from_A_to_B(self.start, self.target_obj.get_center())
                 end_vector = calculate_end_point(shoot_vector, self.laser_length)
-                self.end = end_vector[0]+self.start[0],end_vector[1]+self.start[1]
+                self.end = end_vector[0] + self.start[0], end_vector[1] + self.start[1]
                 if distance_between(self.end, self.target_obj.get_center()) < 10:
                     if self.target_obj.hit(0.1):
                         self.laser_length = 0
@@ -66,6 +71,5 @@ class DefenseLaser:
         self.end = end_vector[0] + self.start[0], end_vector[1] + self.start[1]
         return self.laser_length == 0
 
-    def draw_self(self,window):
-        pygame.draw.line(window,pygame.color.Color(80,200,246,80),self.start,self.end,width=3)
-
+    def draw_self(self, window):
+        pygame.draw.line(window, pygame.color.Color(80, 200, 246, 80), self.start, self.end, width=3)
