@@ -45,7 +45,7 @@ def redraw(window, game):
     draw_friendly_bullets(window, game.friendly_bullets)
     draw_global_animate(window, game.animation)
     draw_bosses(window, game.bosses)
-    draw_props(window,game.props)
+    draw_props(window, game.props)
 
     pygame.display.update()
 

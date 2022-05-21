@@ -64,6 +64,10 @@ class GameObject:
         # draw rectangle around the image
         pygame.draw.rect(window, (255, 0, 0), (*rotated_image_rect.topleft, *rotated_image.get_size()), 2)
 
+    def update(self):
+        self.x += self.vx
+        self.y += self.vy
+
     def __str__(self):
         """
         将游戏对象状态转为字符串，便于调试

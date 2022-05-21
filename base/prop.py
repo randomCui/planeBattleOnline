@@ -1,5 +1,4 @@
 from base.game_object import GameObject
-from base.game import Game
 from enum import Enum
 
 
@@ -16,7 +15,11 @@ class Prop(GameObject):
             )
 
         self.type = None
-        for key, value in kwargs['prop_setting']:
+        # 每个道具再屏幕上应该的存在时间(以帧计)
+        self.designate_keep_time = None
+        self.keep_time = 0
+
+        for key, value in kwargs['prop_setting'].items():
             setattr(self, key, value)
 
         # 调用时type属性应该为一个数值
@@ -25,4 +28,6 @@ class Prop(GameObject):
         self.vx = vector[0]
         self.vy = vector[1]
 
-
+    def update(self):
+        super().update()
+        self.keep_time += 1

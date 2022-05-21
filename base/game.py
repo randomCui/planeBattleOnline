@@ -50,7 +50,7 @@ class Game:
             'game_tick': 0,
             'enemy_spawn': 0,
             'boss_spawn': 100,
-            'prop_spawn':10,
+            'prop_spawn': 10,
         }
 
         self.random = random.Random()
@@ -146,8 +146,8 @@ class Game:
         if pos==(0,0):
             pos = self.random.randint(0, window_width - 100), self.random.randint(window_height/3, window_height * 2/3)
         if self.timer['prop_spawn'] > setting[self.difficult]['prop_spawn_time']:
-            ch = random.randint(1, 3)
-            if ch == PropType.HEALTH_UP:
+            ch = random.randint(1, 1)
+            if ch == PropType.HEALTH_UP.value:
                 temp = Prop(
                     basic_setting={
                         'x': pos[0],
@@ -157,9 +157,11 @@ class Game:
                     },
                     prop_setting={
                         'type': PropType.HEALTH_UP,
+                        'designate_keep_time': 180,
                     },
                 )
-                temp.init_move((0,2))
+                init_move_vector = self.random.random(), self.random.random()
+                temp.init_move(init_move_vector)
                 self.props.append(temp)
                 self.timer['prop_spawn'] = 0
 
@@ -185,6 +187,10 @@ class Game:
     def boss_move(self):
         for boss in self.bosses:
             boss.update()
+
+    def prop_move(self):
+        for prop in self.props:
+            prop.update()
 
     def enemy_shoot(self):
         for enemy in self.enemies:
@@ -227,7 +233,9 @@ class Game:
                     player.set_target(missile_list[index_min])
             player.update()
 
-
+    @staticmethod
+    def obj_move(obj):
+        obj.update()
 
     def ouf_of_boarder_handler(self):
         for enemy in self.enemies:
@@ -289,6 +297,14 @@ class Game:
                 if self.collide(player, boss,player_mask, boss_mask):
                     self.instant_die(enemy)
 
+        for p_id, player in self.players.items():
+            player_mask = pygame.mask.from_surface(t.lib[player.texture_name])
+            for prop in self.props:
+                prop_mask = pygame.mask.from_surface(t.lib[prop.texture_name])
+                if self.collide(player, prop, player_mask, prop_mask):
+                    if prop.type == PropType.HEALTH_UP:
+                        player.hit(-1)
+                        self.props.remove(prop)
 
     @staticmethod
     def collide(obj1, obj2, mask1, mask2):
@@ -344,6 +360,11 @@ class Game:
                 if animate.counter >= animate.length:
                     self.animation[key].remove(animate)
 
+    def detect_prop_expire(self):
+        for prop in self.props:
+            if prop.keep_time > prop.designate_keep_time:
+                self.props.remove(prop)
+
     @staticmethod
     def obj_keep_in_screen(obj):
         for key, value in obj.items():
@@ -374,6 +395,10 @@ class Game:
 
         self.boss_move()
         self.boss_shoot()
+
+        self.prop_spawn()
+        self.prop_move()
+        self.detect_prop_expire()
 
         self.hostile_bullets_move()
 
