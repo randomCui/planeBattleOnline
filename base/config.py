@@ -20,6 +20,7 @@ setting = {
         'boss_health': {
             'boss_1': 60,
         },
+        'prop_spawn_time': 5,
     }
 }
 

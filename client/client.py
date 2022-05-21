@@ -45,8 +45,15 @@ def redraw(window, game):
     draw_friendly_bullets(window, game.friendly_bullets)
     draw_global_animate(window, game.animation)
     draw_bosses(window, game.bosses)
+    draw_props(window,game.props)
 
     pygame.display.update()
+
+
+def draw_props(window, props):
+    for prop in props:
+        prop.init_texture(t.lib[prop.texture_name])
+        prop.draw_self(window)
 
 
 def draw_global_animate(window, animation):

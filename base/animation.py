@@ -20,13 +20,13 @@ class Animation(GameObject):
         self.second_counter = 0
         self.is_finish = False
         self.img_sequence_name = img_sequence_name
-        self.length = len(lib.animate[self.img_sequence_name])
+        self.length = len(lib.animate[self.img_sequence_name]) - 1
 
     def update(self):
         self.second_counter += 1
         if self.second_counter // self.frame_per_update > 0:
             self.second_counter = 0
-            self.counter += 1
+            self.counter = min(self.counter + 1, self.length)
 
     def draw_self(self, window):
         super().init_texture(lib.animate[self.img_sequence_name][self.counter])

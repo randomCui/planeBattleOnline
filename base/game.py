@@ -9,6 +9,7 @@ from base.config import setting, window_height, window_width, frame_rate
 from base.enemy import EnemyType1,EnemyType2, EnemyType3
 from base.missile import Missile
 from base.boss import BossType1
+from base.prop import Prop, PropType
 from base.animation import Animation
 from base.shared_lib import t
 from util import out_of_screen, distance_between
@@ -49,6 +50,7 @@ class Game:
             'game_tick': 0,
             'enemy_spawn': 0,
             'boss_spawn': 100,
+            'prop_spawn':10,
         }
 
         self.random = random.Random()
@@ -140,6 +142,27 @@ class Game:
             self.bosses.append(temp)
             self.timer['boss_spawn'] = 0
 
+    def prop_spawn(self, pos=(0, 0)):
+        if pos==(0,0):
+            pos = self.random.randint(0, window_width - 100), self.random.randint(window_height/3, window_height * 2/3)
+        if self.timer['prop_spawn'] > setting[self.difficult]['prop_spawn_time']:
+            ch = random.randint(1, 3)
+            if ch == PropType.HEALTH_UP:
+                temp = Prop(
+                    basic_setting={
+                        'x': pos[0],
+                        'y': pos[1],
+                        'size': t.lib['HEALTH_UP'].get_size(),
+                        'texture_name': 'HEALTH_UP'
+                    },
+                    prop_setting={
+                        'type': PropType.HEALTH_UP,
+                    },
+                )
+                temp.init_move((0,2))
+                self.props.append(temp)
+                self.timer['prop_spawn'] = 0
+
     def update_timer(self):
         # 推算自从上次update以来经过的时间，并更新所有寄存器的值
         time_past = time.time() - self.current_time
@@ -222,6 +245,10 @@ class Game:
         for b in self.friendly_bullets:
             if out_of_screen(b):
                 self.friendly_bullets.remove(b)
+
+        for prop in self.props:
+            if out_of_screen(prop):
+                self.props.remove(prop)
 
     def collision_detection(self):
         for p_id, player in self.players.items():
