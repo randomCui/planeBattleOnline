@@ -9,6 +9,8 @@ class Player(Plane):
         self.fire_cool_down_frame = None
         self.want_to_shoot = False
         self.nickname = ''
+        self.damage = 1
+        self.damage_factor = 1
         """
         初始化玩家对象
 
@@ -44,7 +46,7 @@ class Player(Plane):
                         'max_speed': 5,
                     },
                     bullet_setting={
-                        'damage': 4,
+                        'damage': 4 * self.damage_factor,
                     },
                 )
                 temp.init_shoot_move((0, -5))

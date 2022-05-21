@@ -146,24 +146,23 @@ class Game:
         if pos==(0,0):
             pos = self.random.randint(0, window_width - 100), self.random.randint(window_height/3, window_height * 2/3)
         if self.timer['prop_spawn'] > setting[self.difficult]['prop_spawn_time']:
-            ch = random.randint(1, 1)
-            if ch == PropType.HEALTH_UP.value:
-                temp = Prop(
-                    basic_setting={
-                        'x': pos[0],
-                        'y': pos[1],
-                        'size': t.lib['HEALTH_UP'].get_size(),
-                        'texture_name': 'HEALTH_UP'
-                    },
-                    prop_setting={
-                        'type': PropType.HEALTH_UP,
-                        'designate_keep_time': 180,
-                    },
-                )
-                init_move_vector = self.random.random(), self.random.random()
-                temp.init_move(init_move_vector)
-                self.props.append(temp)
-                self.timer['prop_spawn'] = 0
+            ch = random.randint(1, 3)
+            temp = Prop(
+                basic_setting={
+                    'x': pos[0],
+                    'y': pos[1],
+                    'size': t.lib[PropType(ch).name].get_size(),
+                    'texture_name': PropType(ch).name
+                },
+                prop_setting={
+                    'type': PropType(ch),
+                    'designate_keep_time': 180,
+                },
+            )
+            init_move_vector = self.random.random(), self.random.random()
+            temp.init_move(init_move_vector)
+            self.props.append(temp)
+            self.timer['prop_spawn'] = 0
 
     def update_timer(self):
         # 推算自从上次update以来经过的时间，并更新所有寄存器的值
@@ -302,9 +301,17 @@ class Game:
             for prop in self.props:
                 prop_mask = pygame.mask.from_surface(t.lib[prop.texture_name])
                 if self.collide(player, prop, player_mask, prop_mask):
-                    if prop.type == PropType.HEALTH_UP:
-                        player.hit(-1)
-                        self.props.remove(prop)
+                    self.prop_make_effect(prop,player)
+                    self.props.remove(prop)
+
+    @staticmethod
+    def prop_make_effect(prop,player):
+        if prop.type == PropType.HEALTH_UP:
+            player.hit(-1)
+        if prop.type == PropType.DAMAGE_UP:
+            player.damage_factor *= 1.2
+        if prop.type == PropType.SHOOTING_SPEED_UP:
+            player.fire_cool_down_frame *= 0.8
 
     @staticmethod
     def collide(obj1, obj2, mask1, mask2):
