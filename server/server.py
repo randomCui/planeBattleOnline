@@ -30,27 +30,41 @@ def client_thread(connection, game_id, player_id, game_state):
     connection.send(pickle.dumps(
         (player_id, player)
     ))
+
     game_semaphore[game_id].acquire()
     games[game_id].players[player_id] = player
     game_semaphore[game_id].release()
+
     current_game = games[game_id]
     current_player = current_game.players[player_id]
     while True:
         try:
             data = pickle.loads(connection.recv(2048 * 10))
-            current_player.set_pos(data['pos'])
+            if current_player.state != 'dead':
+                current_player.set_pos(data['pos'])
 
-            if data['bullet'] is not None:
-                current_player.want_to_shoot = data['bullet']
-            if current_game.pause_owner == '' or current_game.pause_owner == player_id:
-                if data['pause']:
-                    current_game.pause_owner = player_id
-                    current_game.state = 'pause'
-                    game_state[game_id] = 'idle'
-                else:
-                    current_game.state = 'running'
-                    game_state[game_id] = 'running'
-                    current_game.pause_owner = ''
+                if data['bullet'] is not None:
+                    current_player.want_to_shoot = data['bullet']
+                if current_game.pause_owner == '' or current_game.pause_owner == player_id:
+                    if data['pause']:
+                        current_game.pause_owner = player_id
+                        current_game.state = 'pause'
+                        game_state[game_id] = 'idle'
+                    else:
+                        current_game.state = 'running'
+                        game_state[game_id] = 'running'
+                        current_game.pause_owner = ''
+
+                if data['restart'] == True:
+                    games[game_id] = Game(game_id)
+
+            all_dead = True
+            for id, player in current_game.players.items():
+                if player.state == 'alive':
+                    all_dead = False
+                    break
+            if all_dead:
+                current_game.state = 'lose'
 
             connection.send(pickle.dumps(current_game))
             if not data:
@@ -87,10 +101,11 @@ def game_thread(game_state, games, game_id):
             games[game_id].update()
             # time.sleep(0.005)
             game_semaphore[game_id].release()
-            last_time = time.time()
         elif game_state[game_id] == 'idle':
             games[game_id].recover_from_pause = True
             time.sleep(0.2)
+        elif game_state[game_id] == 'win' or game_state[game_id] == 'lose':
+            time.sleep(1)
         elif game_state[game_id] == 'stopped':
             break
 

@@ -28,6 +28,8 @@ class BossType1(Plane):
         self.fire_cool_down_frame = None
         self.last_fire = 0
 
+        self.score = 150
+
         for key, value in kwargs['boss_setting'].items():
             setattr(self, key, value)
 
@@ -35,16 +37,15 @@ class BossType1(Plane):
         if self.frame_past % self.change_interest == 0:
             self.go_to_elsewhere()
         self.change_pos(
-            vector_from_A_to_B(self.get_pos(),self.interest_place)
+            vector_from_A_to_B(self.get_pos(), self.interest_place)
         )
         self.frame_past += 1
         super().update()
 
-
     def go_to_elsewhere(self):
         self.interest_place = (
             self.random_gen.randint(0, width),
-            self.random_gen.randint(0, height//4),
+            self.random_gen.randint(0, height // 4),
         )
 
     def shoot(self, players):
@@ -91,4 +92,3 @@ class BossType1(Plane):
 
     def attack(self):
         pass
-

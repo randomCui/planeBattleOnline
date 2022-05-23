@@ -6,18 +6,19 @@ import time
 sys.path.append('../base')
 
 from base.config import setting, window_height, window_width, frame_rate
-from base.enemy import EnemyType1,EnemyType2, EnemyType3
+from base.enemy import EnemyType1, EnemyType2, EnemyType3
 from base.missile import Missile
 from base.boss import BossType1
 from base.prop import Prop, PropType
 from base.animation import Animation
 from base.shared_lib import t
+from base.score import add_score
 from util import out_of_screen, distance_between
 
 
 def detect_missile_expire(missile):
-        if missile.life_time < 0:
-            missile.fuel = False
+    if missile.life_time < 0:
+        missile.fuel = False
 
 
 def missile_die_detection(missile):
@@ -36,6 +37,7 @@ class Game:
         self.friendly_bullets = []
         self.props = []
         self.bosses = []
+        self.sound_list = []
 
         self.running_state = False
         self.pause_owner = ''
@@ -51,6 +53,10 @@ class Game:
             'enemy_spawn': 0,
             'boss_spawn': 100,
             'prop_spawn': 10,
+        }
+        self.item_counter = {
+            'enemy': 30,
+            'boss': 1
         }
 
         self.random = random.Random()
@@ -68,7 +74,8 @@ class Game:
         # enemy_type = self.random.randint(1,2)
         if pos == (0, 0):
             pos = self.random.randint(0, window_width - 100), 30
-        if self.timer['enemy_spawn'] > setting[self.difficult]['enemy_spawn_time']:
+        if self.timer['enemy_spawn'] > setting[self.difficult]['enemy_spawn_time'] and self.item_counter['enemy'] != 0:
+            self.item_counter['enemy'] -= 1
             ch = random.randint(1, 2)
             temp = None
             if ch == 1:
@@ -117,7 +124,8 @@ class Game:
     def boss_spawn(self, pos=(0, 0)):
         if pos == (0, 0):
             pos = self.random.randint(0, window_width - 100), 30
-        if self.timer['boss_spawn'] > setting[self.difficult]['boss_spawn_time']:
+        if self.timer['boss_spawn'] > setting[self.difficult]['boss_spawn_time'] and self.item_counter['enemy'] !=0:
+            self.item_counter['enemy'] -= 1
             ch = random.randint(1, 1)
             temp = None
             if ch == 1:
@@ -143,8 +151,9 @@ class Game:
             self.timer['boss_spawn'] = 0
 
     def prop_spawn(self, pos=(0, 0)):
-        if pos==(0,0):
-            pos = self.random.randint(0, window_width - 100), self.random.randint(window_height/3, window_height * 2/3)
+        if pos == (0, 0):
+            pos = self.random.randint(0, window_width - 100), self.random.randint(window_height / 3,
+                                                                                  window_height * 2 / 3)
         if self.timer['prop_spawn'] > setting[self.difficult]['prop_spawn_time']:
             ch = random.randint(1, 3)
             temp = Prop(
@@ -211,6 +220,8 @@ class Game:
 
     def player_self_defense(self):
         for key, player in self.players.items():
+            if player.state == 'dead':
+                continue
             missile_list = []
             for b in self.hostile_bullets:
                 if isinstance(b, Missile):
@@ -258,7 +269,10 @@ class Game:
                 self.props.remove(prop)
 
     def collision_detection(self):
+        # 己方飞机被敌方子弹击中的结算逻辑
         for p_id, player in self.players.items():
+            if player.state == 'dead':
+                continue
             player_mask = pygame.mask.from_surface(t.lib[player.texture_name])
             for h_bullet in self.hostile_bullets:
                 bullet_mask = pygame.mask.from_surface(t.lib[h_bullet.texture_name])
@@ -266,46 +280,64 @@ class Game:
                     self.get_hit(player, h_bullet.damage)
                     self.hostile_bullets.remove(h_bullet)
 
+        # 敌方飞机被己方子弹击中的计算逻辑
         for enemy in self.enemies:
             enemy_mask = pygame.mask.from_surface(t.lib[enemy.texture_name])
             for f_bullet in self.friendly_bullets:
                 bullet_mask = pygame.mask.from_surface(t.lib[f_bullet.texture_name])
                 if self.collide(enemy, f_bullet, enemy_mask, bullet_mask):
                     self.get_hit(enemy, f_bullet.damage)
+                    if enemy.health == 0:
+                        assert f_bullet.belonging is not None
+                        f_bullet.belonging.game_score += enemy.score
                     self.friendly_bullets.remove(f_bullet)
 
+        # 己方子弹击中敌方Boss的结算逻辑
         for boss in self.bosses:
             boss_mask = pygame.mask.from_surface(t.lib[boss.texture_name])
             for f_bullet in self.friendly_bullets:
                 bullet_mask = pygame.mask.from_surface(t.lib[f_bullet.texture_name])
                 if self.collide(boss, f_bullet, boss_mask, bullet_mask):
                     self.get_hit(boss, f_bullet.damage)
+                    if boss.health == 0:
+                        assert f_bullet.belonging is not None
+                        f_bullet.belonging.game_score += boss.score
                     self.friendly_bullets.remove(f_bullet)
 
+        # 敌方飞机和我方飞机相撞检测
         for p_id, player in self.players.items():
+            if player.state == 'dead':
+                continue
             player_mask = pygame.mask.from_surface(t.lib[player.texture_name])
             for enemy in self.enemies:
                 enemy_mask = pygame.mask.from_surface(t.lib[enemy.texture_name])
-                if self.collide(player, enemy,player_mask, enemy_mask):
+                if self.collide(player, enemy, player_mask, enemy_mask):
                     self.instant_die(enemy)
 
+        # 敌方boss和我方飞机相撞检测
         for p_id, player in self.players.items():
+            if player.state == 'dead':
+                continue
             player_mask = pygame.mask.from_surface(t.lib[player.texture_name])
             for boss in self.enemies:
                 boss_mask = pygame.mask.from_surface(t.lib[boss.texture_name])
-                if self.collide(player, boss,player_mask, boss_mask):
-                    self.instant_die(enemy)
+                if self.collide(player, boss, player_mask, boss_mask):
+                    self.instant_die(boss)
 
+        # 我方飞机捡起道具的检测
         for p_id, player in self.players.items():
+            if player.state == 'dead':
+                continue
             player_mask = pygame.mask.from_surface(t.lib[player.texture_name])
             for prop in self.props:
                 prop_mask = pygame.mask.from_surface(t.lib[prop.texture_name])
                 if self.collide(player, prop, player_mask, prop_mask):
-                    self.prop_make_effect(prop,player)
+                    self.prop_make_effect(prop, player)
+                    self.sound_list.append('get_prop')
                     self.props.remove(prop)
 
     @staticmethod
-    def prop_make_effect(prop,player):
+    def prop_make_effect(prop, player):
         if prop.type == PropType.HEALTH_UP:
             player.hit(-1)
         if prop.type == PropType.DAMAGE_UP:
@@ -343,18 +375,21 @@ class Game:
         for enemy in self.enemies:
             if enemy.health <= 0:
                 temp = Animation(enemy.get_center(), (0, 0), 'explosion1')
+                self.sound_list.append('death')
                 self.animation['enemy_explosion'].append(temp)
                 self.enemies.remove(enemy)
 
     def boss_die_detection(self):
         for boss in self.bosses:
             if boss.health <= 0:
-                temp = Animation(boss.get_center(), (0,0), 'explosion1')
+                temp = Animation(boss.get_center(), (0, 0), 'explosion1')
                 self.animation['enemy_explosion'].append(temp)
                 self.bosses.remove(boss)
 
     def player_failed_detection(self):
-        pass
+        for p_id, player in self.players.items():
+            if player.health <= 0:
+                player.state = 'dead'
 
     def update_animation(self):
         for key, animate_list in self.animation.items():
@@ -388,11 +423,15 @@ class Game:
                 obj[key].y = window_height - value.height
                 obj[key].vy = 0
 
+    def refresh_sound_list(self):
+        self.sound_list = []
+
     def update(self):
         game_tick = self.update_timer()
         if game_tick < 1 / frame_rate:
             return
         self.timer['game_tick'] = 0
+        self.sound_list=[]
         self.obj_keep_in_screen(self.players)
         self.enemy_spawn()
         self.boss_spawn()
@@ -423,3 +462,4 @@ class Game:
 
         self.ouf_of_boarder_handler()
 
+        self.player_failed_detection()

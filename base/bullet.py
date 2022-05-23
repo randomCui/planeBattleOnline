@@ -10,6 +10,8 @@ class Bullet(InertiaObject):
         self.damage = None
         self.animation_list = []
         self.not_destroyed = True
+        # 每颗子弹拥有自己的发射者，用于结算分数
+        self.belonging = None
 
         for key, value in properties['bullet_setting'].items():
             setattr(self, key, value)

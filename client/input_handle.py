@@ -6,8 +6,8 @@ from math import sqrt, pow
 
 toggle_mouse_control = False
 toggle_mouse_control_delay = 0
-toggle_pause = False
-toggle_pause_delay = 0
+# toggle_pause = False
+# toggle_pause_delay = 0
 
 
 def get_input_vector_keyboard(keys):
@@ -66,19 +66,19 @@ def detect_shooting(keys):
         return True
 
 
-def detect_pause(keys):
-    global toggle_pause, toggle_pause_delay
-    toggle_pause_delay -= 1
-    if toggle_pause_delay < 0:
-        toggle_pause_delay = 30
-        if keys[pygame.K_ESCAPE]:
-            if toggle_pause:
-                toggle_pause = False
-            else:
-                toggle_pause = True
+# def detect_pause(keys):
+#     global toggle_pause, toggle_pause_delay
+#     toggle_pause_delay -= 1
+#     if toggle_pause_delay < 0:
+#         toggle_pause_delay = 30
+#         if keys[pygame.K_ESCAPE]:
+#             if toggle_pause:
+#                 toggle_pause = False
+#             else:
+#                 toggle_pause = True
 
 
-def get_input(plane_pos):
+def get_input(plane_pos, is_mouse_control):
     # 提供一个规范的报文格式
     control_report = {
         'move_vector': None,
@@ -93,9 +93,9 @@ def get_input(plane_pos):
 
     is_shooting = detect_shooting(kb_state)
 
-    detect_pause(kb_state)
+    # detect_pause(kb_state)
 
-    if not toggle_mouse_control:
+    if not is_mouse_control:
         move_vector, is_damping = kb_input
         # return kb_input,False
     else:
@@ -105,7 +105,7 @@ def get_input(plane_pos):
     control_report['move_vector'] = move_vector
     control_report['is_damping'] = is_damping
     control_report['is_shooting'] = is_shooting
-    control_report['need_pause'] = toggle_pause
+    # control_report['need_pause'] = toggle_pause
 
     return control_report
 

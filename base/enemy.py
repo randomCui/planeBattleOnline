@@ -15,6 +15,7 @@ class Enemy(Plane):
                          )
         self.fire_cool_down_frame = None
         self.last_fire = 0
+        self.score = 10
 
         for key, value in properties['enemy_setting'].items():
             setattr(self, key, value)
@@ -44,6 +45,7 @@ class EnemyType2(Plane):
                          )
         self.fire_cool_down_frame = None
         self.last_fire = 0
+        self.score = 30
 
         for key, value in properties['enemy_setting'].items():
             setattr(self, key, value)
@@ -98,6 +100,7 @@ class EnemyType3(Enemy):
                          plane_setting=properties['plane_setting'],
                          enemy_setting=properties['enemy_setting'],
                          )
+        self.score = 50
 
     def shoot(self, players):
         assert self.fire_cool_down_frame is not None

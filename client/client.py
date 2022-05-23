@@ -11,18 +11,22 @@ sys.path.append('../base')
 sys.path.append('../server')
 
 from input_handle import get_input
+from audio import Audio
+from base.control_key_group import ControlKey
+from network import Network
 from base.shared_lib import t
 from base.config import window_height as height
 from base.config import window_width as width
-from network import Network
 from base.config import ip, port, sensitivity
-
 
 # width = 500
 # height = 500
 win = pygame.display.set_mode((width, height))
 pygame.display.set_caption("Client")
+
 pygame.font.init()
+pygame.mixer.init()
+
 title_font = pygame.font.SysFont("黑体", 30)
 selection_font = pygame.font.SysFont("黑体", 40)
 pause_font = pygame.font.SysFont("arial", 70)
@@ -82,6 +86,8 @@ def draw_bosses(window, bosses):
 
 def draw_players(window, players):
     for p_id, player in players.items():
+        if player.state == 'dead':
+            continue
         player.init_texture(t.lib[player.texture_name])
         player.draw_self(window)
         title_label = nickname_font.render(player.nickname, True, (255, 255, 255))
@@ -92,6 +98,26 @@ def draw_pause_window(window):
     title_pause = pause_font.render("Paused", True, (255, 255, 255))
     window.blit(title_pause, (width / 2 - title_pause.get_width() / 2, 250))
     title_pause = sub_pause_font.render("Press ESC to resume", True, (255, 255, 255))
+    window.blit(title_pause, (width / 2 - title_pause.get_width() / 2, 350))
+    pygame.display.update()
+
+
+def draw_win_screen(window, score):
+    window.fill(255, 255, 255)
+    title_pause = pause_font.render("You Win", True, (255, 255, 255))
+    window.blit(title_pause, (width / 2 - title_pause.get_width() / 2, 250))
+    hint = "Your score is: " + str(score)
+    title_pause = sub_pause_font.render(hint, True, (255, 255, 255))
+    window.blit(title_pause, (width / 2 - title_pause.get_width() / 2, 350))
+    pygame.display.update()
+
+
+def draw_lose_screen(window, score):
+    window.fill(255, 255, 255)
+    title_pause = pause_font.render("You Lose", True, (255, 255, 255))
+    window.blit(title_pause, (width / 2 - title_pause.get_width() / 2, 250))
+    hint = "Your score is: " + str(score)
+    title_pause = sub_pause_font.render(hint, True, (255, 255, 255))
     window.blit(title_pause, (width / 2 - title_pause.get_width() / 2, 350))
     pygame.display.update()
 
@@ -212,19 +238,46 @@ def main_game():
     ID, p = n.get_local_object()
     # 由于服务端不负责处理贴图，因此在客户端上需要将贴图贴上
     p.init_texture(t.lib[client_texture_name])
+    # 初始化一个控制键对象，用于处理切换性按键的操作
+    ck = ControlKey()
+    # 初始化音频对象，用于播放音乐
+    client_audio = Audio()
+    client_audio.play_BGM()
+
     clock = pygame.time.Clock()
     run = True
     control_counter = 0
     while run:
+        ck.R = False
+
         clock.tick(120)
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 run = False
                 n.disconnect()
                 pygame.quit()
+            # if event.type == pygame.KEYDOWN:
+            #     if event.key == pygame.K_RALT:
+            #         ck.state_change('R_ALT')
+            #     elif event.key == pygame.K_ESCAPE:
+            #         ck.state_change('Escape')
+            #     elif event.key == pygame.K_r:
+            #         ck.state_change('R')
+            if event.type == pygame.KEYUP:
+                if event.key == pygame.K_RALT:
+                    ck.toggle_state('R_ALT')
+                    # ck.clear_counter('R_ALT')
+                elif event.key == pygame.K_ESCAPE:
+                    ck.toggle_state('Escape')
+                    # ck.clear_counter('Escape')
+                elif event.key == pygame.K_r:
+                    ck.toggle_state('R')
+                    # ck.clear_counter('R')
+
         # 由本地输入得到飞机移动的向量 和 飞机是否靠近鼠标位置
-        control_report = get_input(p.get_center())
+        control_report = get_input(p.get_center(), ck.R_ALT)
         # 在飞机的速度矢量上加上之前的移动矢量
+        control_report['need_pause'] = ck.Escape
 
         p.change_pos(control_report['move_vector'])
         # 如果在鼠标控制模式下，接近光标位置，就开始增加阻尼，使飞机减速
@@ -240,11 +293,13 @@ def main_game():
 
         # 让对象保持在屏幕中央
         keep_in_screen_client(p)
+
         # 组织好向服务器发送的数据
         data = {
             'pos': p.get_pos(),
             'bullet': control_report['is_shooting'],
             'pause': control_report['need_pause'],
+            'restart': ck.R
         }
         # 发送到服务器
         n.send(data)
@@ -252,13 +307,22 @@ def main_game():
         # 服务器返回在这一轮之后的战场情况
         # p.draw_self(window)
         reply = n.receive()
+        # 将本时刻更新的音乐添加到音效中去
+        client_audio.add_sound_effect(reply.sound_list)
+
         game_state = reply.state
         # 客户端根据更新的情况，对画面进行更新
         if game_state == 'running':
+            client_audio.unpause_BGM()
             redraw(win, reply)
         if game_state == 'pause':
+            client_audio.pause_BGM()
             draw_pause_window(win)
             # redraw(win, reply)
+        if game_state == 'win':
+            draw_win_screen(win, reply.players[ID].game_score)
+        if game_state == 'lose':
+            draw_lose_screen(win, reply.players[ID].game_score)
 
 
 if __name__ == '__main__':

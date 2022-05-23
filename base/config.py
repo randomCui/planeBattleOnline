@@ -1,3 +1,5 @@
+import os
+
 window_width = 600
 window_height = 750
 
@@ -26,4 +28,11 @@ setting = {
 
 client_specific = {
 
+}
+
+music_path = {
+    'BGM': os.path.join("..", "audio", "BGM1.wav"),
+    'death': os.path.join("..", "audio", "explosion.wav"),
+    'get_prop': os.path.join("..", "audio", "getToolKit.wav"),
+    'player_shoot': os.path.join("..", "audio", "heroShoot.wav"),
 }

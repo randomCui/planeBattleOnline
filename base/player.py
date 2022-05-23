@@ -11,6 +11,8 @@ class Player(Plane):
         self.nickname = ''
         self.damage = 1
         self.damage_factor = 1
+        self.game_score = 0
+        self.state = 'alive'
         """
         初始化玩家对象
 
@@ -47,6 +49,7 @@ class Player(Plane):
                     },
                     bullet_setting={
                         'damage': 4 * self.damage_factor,
+                        'belonging': self
                     },
                 )
                 temp.init_shoot_move((0, -5))
