@@ -1,10 +1,17 @@
 import os
-import pygame, pygame_menu
-from config import window_width as width
+
+import pygame
+import pygame_menu
+
 from config import window_height as height
+from config import window_width as width
 
 
 class Texture:
+    """
+    保存了所有的游戏贴图
+    """
+
     def __init__(self):
         # Load images
         self.lib = {

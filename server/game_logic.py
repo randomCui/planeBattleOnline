@@ -1,13 +1,13 @@
-import sys, pygame, random
+import random
+import sys
+
 sys.path.append('../base')
 
-from base.plane import Plane
-from base.enemy import EnemyType1,EnemyType2
-from base.player import Player
-from base.config import window_width,window_height,setting
+from base.enemy import EnemyType1
+from base.config import window_width, window_height, setting
 
 
-def enemy_spawn(game,t):
+def enemy_spawn(game, t):
     ch = random.randint(1, 2)
     temp = None
     if ch == 1:

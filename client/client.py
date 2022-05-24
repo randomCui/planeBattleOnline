@@ -1,4 +1,3 @@
-import os
 import sys
 from math import degrees
 
@@ -152,14 +151,14 @@ def draw_players(window, players: dict):
         window.blit(title_label, (player.get_center()[0] - title_label.get_width() / 2, player.y - 30))
 
 
-def draw_ui(window,score):
+def draw_ui(window, score):
     """
 
     :param window: 用于显示的pygame surface
     :param score:
     :return:
     """
-    score_text = 'Score: '+str(score)
+    score_text = 'Score: ' + str(score)
     title_score = pause_font.render(score_text, True, (255, 255, 255))
     window.blit(title_score, (width - title_score.get_width(), 0))
 
@@ -263,6 +262,7 @@ class MainMenu:
     """
     游戏的主菜单对象
     """
+
     def __init__(self, window):
         # 用于绘制的窗口
         self.window = window

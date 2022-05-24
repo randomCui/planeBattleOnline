@@ -18,7 +18,6 @@ bullet_template = {
     }
 }
 
-
 player_template = {
     'player_1': {
         'basic_setting': {
