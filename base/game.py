@@ -59,6 +59,10 @@ class Game:
             'boss': 1
         }
 
+        self.background_frame_counter = 0
+        self.background_frame = 0
+        self.reverse = False
+
         self.random = random.Random()
         self.random.seed(self.current_time)
 
@@ -446,6 +450,20 @@ class Game:
         if not enemy_left:
             self.state = 'win'
 
+    def update_background_frame(self):
+        self.background_frame_counter += 1
+        if self.background_frame_counter == 5:
+            self.background_frame_counter = 0
+            if not self.reverse:
+                self.background_frame+=1
+            else:
+                self.background_frame-=1
+            if self.background_frame<=0 or self.background_frame >= 42:
+                if self.reverse:
+                    self.reverse = False
+                else:
+                    self.reverse = True
+
     def update(self):
         game_tick = self.update_timer()
         if game_tick < 1 / frame_rate:
@@ -485,3 +503,4 @@ class Game:
         self.player_failed_detection()
 
         self.global_state_update()
+        self.update_background_frame()

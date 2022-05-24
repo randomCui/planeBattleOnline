@@ -1,4 +1,6 @@
 import pygame,os
+from base.config import window_height as height
+from base.config import window_width as width
 
 
 animate = {
@@ -18,5 +20,8 @@ for i in range(1, 9):
 for i in range(0, 43):
     filename = 'bg'+str(i)+'.jpg'
     path = os.path.join("..", "assets", "background", filename)
-    animate['background'].append(pygame.image.load(path))
+    temp_img = pygame.image.load(path)
+
+    pygame.transform.scale(temp_img,(width,height))
+    animate['background'].append(temp_img)
 

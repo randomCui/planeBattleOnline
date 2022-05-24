@@ -1,15 +1,20 @@
 import os
 
+# 游戏屏幕宽高
 window_width = 600
 window_height = 750
 
+# 游戏帧率
 frame_rate = 60
 
+# 服务器的初始化数据
 ip = 'localhost'
 port = 11452
 
+# 游戏操控的灵敏度
 sensitivity = 2
 
+# 保存游戏各项设置的字典
 setting = {
     'easy': {
         'enemy_spawn_time': 2,
@@ -24,15 +29,4 @@ setting = {
         },
         'prop_spawn_time': 5,
     }
-}
-
-client_specific = {
-
-}
-
-music_path = {
-    'BGM': os.path.join("..", "audio", "BGM1.wav"),
-    'death': os.path.join("..", "audio", "explosion.wav"),
-    'get_prop': os.path.join("..", "audio", "getToolKit.wav"),
-    'player_shoot': os.path.join("..", "audio", "heroShoot.wav"),
 }

@@ -25,8 +25,12 @@ class ControlKey:
         else:
             setattr(self, key, False)
 
-    def clear_all(self):
+    def clear_sate(self):
         # 按键信息发送到服务器后，本地的按键数据清零
         self.R_ALT = False
         self.Escape = False
         self.R = False
+
+    def clear_state(self, key):
+        setattr(self, key, False)
+
