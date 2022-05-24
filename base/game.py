@@ -75,7 +75,6 @@ class Game:
         if pos == (0, 0):
             pos = self.random.randint(0, window_width - 100), 30
         if self.timer['enemy_spawn'] > setting[self.difficult]['enemy_spawn_time'] and self.item_counter['enemy'] != 0:
-            self.item_counter['enemy'] -= 1
             ch = random.randint(1, 2)
             temp = None
             if ch == 1:
@@ -124,8 +123,7 @@ class Game:
     def boss_spawn(self, pos=(0, 0)):
         if pos == (0, 0):
             pos = self.random.randint(0, window_width - 100), 30
-        if self.timer['boss_spawn'] > setting[self.difficult]['boss_spawn_time'] and self.item_counter['enemy'] !=0:
-            self.item_counter['enemy'] -= 1
+        if self.timer['boss_spawn'] > setting[self.difficult]['boss_spawn_time'] and self.item_counter['boss'] != 0:
             ch = random.randint(1, 1)
             temp = None
             if ch == 1:
@@ -217,6 +215,7 @@ class Game:
             flag, b = value.shoot()
             if flag:
                 self.friendly_bullets.append(b)
+                self.sound_list.append('player_shoot')
 
     def player_self_defense(self):
         for key, player in self.players.items():
@@ -375,6 +374,7 @@ class Game:
         for enemy in self.enemies:
             if enemy.health <= 0:
                 temp = Animation(enemy.get_center(), (0, 0), 'explosion1')
+                self.item_counter['enemy'] -= 1
                 self.sound_list.append('death')
                 self.animation['enemy_explosion'].append(temp)
                 self.enemies.remove(enemy)
@@ -383,6 +383,7 @@ class Game:
         for boss in self.bosses:
             if boss.health <= 0:
                 temp = Animation(boss.get_center(), (0, 0), 'explosion1')
+                self.item_counter['boss'] -= 1
                 self.animation['enemy_explosion'].append(temp)
                 self.bosses.remove(boss)
 
@@ -426,12 +427,31 @@ class Game:
     def refresh_sound_list(self):
         self.sound_list = []
 
+    def global_state_update(self):
+        # 检测场上是否还有玩家存活
+        alive_num = 0
+        for p_id, player in self.players.items():
+            if player.state == 'alive':
+                alive_num += 1
+        if alive_num == 0:
+            self.state = 'lose'
+
+        # 检测是否所有敌人都被消灭
+        enemy_left = False
+        for key, value in self.item_counter.items():
+            if value != 0:
+                enemy_left = True
+                break
+
+        if not enemy_left:
+            self.state = 'win'
+
     def update(self):
         game_tick = self.update_timer()
         if game_tick < 1 / frame_rate:
             return
         self.timer['game_tick'] = 0
-        self.sound_list=[]
+        self.refresh_sound_list()
         self.obj_keep_in_screen(self.players)
         self.enemy_spawn()
         self.boss_spawn()
@@ -463,3 +483,5 @@ class Game:
         self.ouf_of_boarder_handler()
 
         self.player_failed_detection()
+
+        self.global_state_update()

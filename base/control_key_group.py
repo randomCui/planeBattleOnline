@@ -5,7 +5,7 @@ class ControlKey:
         self.R_ALT_counter = 0
         self.R_ALT = False
         self.Escape_counter = 0
-        self.Escape = False
+        self.Escape = True
         self.R_counter = 0
         self.R = False
 

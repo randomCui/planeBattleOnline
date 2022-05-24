@@ -3,6 +3,7 @@ import pygame.draw
 from inertia_object import InertiaObject
 from bullet import BulletSimple
 from shared_lib import t
+from math import floor
 
 
 class Plane(InertiaObject):

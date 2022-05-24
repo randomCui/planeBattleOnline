@@ -17,6 +17,11 @@ class Audio:
     def unpause_BGM(self):
         pygame.mixer.music.unpause()
 
+    def restart_BGM(self):
+        pygame.mixer.music.load(music_path['BGM'])
+        pygame.mixer.music.set_volume(0.5)
+        pygame.mixer.music.play(loops=-1)
+
     def add_sound_effect(self, sound_list):
         for name in sound_list:
             pygame.mixer.find_channel(True).play(

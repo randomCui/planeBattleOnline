@@ -42,7 +42,7 @@ nickname_font = pygame.font.SysFont("calibri", 30)
 
 
 def redraw(window, game):
-    draw_background(window)
+    # draw_background(window)
     draw_players(window, game.players)
     draw_enemies(window, game.enemies)
     draw_hostile_bullets(window, game.hostile_bullets)
@@ -99,27 +99,27 @@ def draw_pause_window(window):
     window.blit(title_pause, (width / 2 - title_pause.get_width() / 2, 250))
     title_pause = sub_pause_font.render("Press ESC to resume", True, (255, 255, 255))
     window.blit(title_pause, (width / 2 - title_pause.get_width() / 2, 350))
-    pygame.display.update()
+    # pygame.display.update()
 
 
 def draw_win_screen(window, score):
-    window.fill(255, 255, 255)
+    # window.fill(255, 255, 255)
     title_pause = pause_font.render("You Win", True, (255, 255, 255))
     window.blit(title_pause, (width / 2 - title_pause.get_width() / 2, 250))
     hint = "Your score is: " + str(score)
     title_pause = sub_pause_font.render(hint, True, (255, 255, 255))
     window.blit(title_pause, (width / 2 - title_pause.get_width() / 2, 350))
-    pygame.display.update()
+    # pygame.display.update()
 
 
 def draw_lose_screen(window, score):
-    window.fill(255, 255, 255)
+    # window.fill(255, 255, 255)
     title_pause = pause_font.render("You Lose", True, (255, 255, 255))
     window.blit(title_pause, (width / 2 - title_pause.get_width() / 2, 250))
     hint = "Your score is: " + str(score)
     title_pause = sub_pause_font.render(hint, True, (255, 255, 255))
     window.blit(title_pause, (width / 2 - title_pause.get_width() / 2, 350))
-    pygame.display.update()
+    # pygame.display.update()
 
 
 def draw_friendly_bullets(window, bullets):
@@ -243,6 +243,7 @@ def main_game():
     # 初始化音频对象，用于播放音乐
     client_audio = Audio()
     client_audio.play_BGM()
+    client_audio.pause_BGM()
 
     clock = pygame.time.Clock()
     run = True
@@ -279,6 +280,10 @@ def main_game():
         # 在飞机的速度矢量上加上之前的移动矢量
         control_report['need_pause'] = ck.Escape
 
+        if ck.R == True:
+            ID, p = n.get_local_object()
+            client_audio.restart_BGM()
+
         p.change_pos(control_report['move_vector'])
         # 如果在鼠标控制模式下，接近光标位置，就开始增加阻尼，使飞机减速
         if control_report['is_damping']:
@@ -308,21 +313,39 @@ def main_game():
         # p.draw_self(window)
         reply = n.receive()
         # 将本时刻更新的音乐添加到音效中去
-        client_audio.add_sound_effect(reply.sound_list)
+        if game_state != 'lose' or game_state != 'win':
+            client_audio.add_sound_effect(reply.sound_list)
 
+        old_state = game_state
         game_state = reply.state
+
         # 客户端根据更新的情况，对画面进行更新
         if game_state == 'running':
-            client_audio.unpause_BGM()
+            if old_state != 'running':
+                client_audio.unpause_BGM()
+            draw_background(win)
             redraw(win, reply)
         if game_state == 'pause':
+            if old_state != 'pause':
+                client_audio.unpause_BGM()
             client_audio.pause_BGM()
+            draw_background(win)
             draw_pause_window(win)
-            # redraw(win, reply)
+            redraw(win, reply)
         if game_state == 'win':
+
+            client_audio.pause_BGM()
+
+            draw_background(win)
             draw_win_screen(win, reply.players[ID].game_score)
+            redraw(win, reply)
         if game_state == 'lose':
+
+            client_audio.pause_BGM()
+
+            draw_background(win)
             draw_lose_screen(win, reply.players[ID].game_score)
+            redraw(win, reply)
 
 
 if __name__ == '__main__':
