@@ -1,5 +1,3 @@
-import os
-
 # 游戏屏幕宽高
 window_width = 600
 window_height = 750

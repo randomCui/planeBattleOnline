@@ -11,8 +11,8 @@ class ControlKey:
 
     def state_change(self, key):
         # 每次键按下和弹起的时候都给计数器+1，当计数器为2时，说明完成一次操作，标记一次按键操作
-        o_counter = getattr(self, key+'_counter')
-        setattr(self, key+'_counter', o_counter + 1)
+        o_counter = getattr(self, key + '_counter')
+        setattr(self, key + '_counter', o_counter + 1)
         self.toggle_state(key)
 
     def clear_counter(self, key):
@@ -33,4 +33,3 @@ class ControlKey:
 
     def clear_state(self, key):
         setattr(self, key, False)
-

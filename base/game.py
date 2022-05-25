@@ -242,7 +242,7 @@ class Game:
             # 如果这个对象是导弹对象
             if isinstance(b, Missile):
                 # 检查导弹的动力段是否已经结束，如果结束，就让其切换到无动力滑行状态
-                detect_missile_expire(b)
+                self.detect_missile_expire(b)
             b.update()
 
     def friendly_bullets_move(self):
@@ -411,7 +411,7 @@ class Game:
             if player.state == 'dead':
                 continue
             player_mask = pygame.mask.from_surface(t.lib[player.texture_name])
-            for boss in self.boss:
+            for boss in self.bosses:
                 boss_mask = pygame.mask.from_surface(t.lib[boss.texture_name])
                 if self.collide(player, boss, player_mask, boss_mask):
                     self.instant_die(boss)

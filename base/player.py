@@ -29,8 +29,9 @@ class Player(Plane):
                          inertia_setting=properties['inertia_setting'],
                          plane_setting=properties['plane_setting'],
                          )
-        # 初始化生命值条的高度
+        # 玩家对象需要将生命值条绘制在对象下方，需要重新设置y轴的偏移量
         self._health_bar_y_offset = self.height + 10
+
         # 将传入的参数设置进类中
         for key, value in properties['player_setting'].items():
             setattr(self, key, value)

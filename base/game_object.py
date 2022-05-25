@@ -7,9 +7,9 @@ class GameObject:
         self.y = 0
         self.vx = 0
         self.vy = 0
-        # 设置生命值，移动速度等等内容
         self.width = 0
         self.height = 0
+        # 对象和y轴的夹角
         self.angle = 0
         self.size = None
         self.texture = None
@@ -22,6 +22,7 @@ class GameObject:
         self.height = self.size[1]
 
     def init_texture(self, texture):
+        # 由于前后端分离，因此需要在客户端将贴图贴上之后再进行渲染
         if texture is not None:
             self.texture = texture
             self.height = texture.get_height()
@@ -30,6 +31,7 @@ class GameObject:
             raise ValueError("Texture cannot be None")
 
     def get_center(self):
+        # 返回对象中心位置
         return self.x + self.width / 2, self.y + self.height / 2
 
     def draw_self(self, window):
@@ -41,20 +43,21 @@ class GameObject:
         """
         # 假设在显示图形之前图像已经被初始化完成
         assert self.texture is not None
+        # 考虑对象的旋转角度进行渲染
         self.rotate_around_pivot(window)
 
     def rotate_around_pivot(self, window):
-        # offset from pivot to center
+        # 将枢轴偏移到中心位置
         image_rect = self.texture.get_rect(topleft=(self.x, self.y))
         offset_center_to_pivot = pygame.math.Vector2((self.x, self.y)) - image_rect.center
 
-        # rotated offset from pivot to center
+        # 沿枢轴进行旋转
         rotated_offset = offset_center_to_pivot.rotate(-self.angle)
 
-        # rotated image center
+        # 旋转图片
         rotated_image_center = (self.x - rotated_offset.x, self.y - rotated_offset.y)
 
-        # get a rotated image
+        # 得到旋转之后的图片
         rotated_image = pygame.transform.rotate(self.texture, self.angle)
         rotated_image_rect = rotated_image.get_rect(topleft=(self.x,self.y),center=rotated_image_center)
 
