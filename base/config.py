@@ -7,7 +7,7 @@ frame_rate = 60
 
 # 服务器的初始化数据
 ip = 'localhost'
-port = 11452
+port = 11451
 
 # 游戏操控的灵敏度
 sensitivity = 2
@@ -20,11 +20,27 @@ setting = {
             'enemy_1': 3,
             'enemy_2': 5,
         },
+        'total_enemy': 60,
 
         'boss_spawn_time': 100,
+
         'boss_health': {
             'boss_1': 60,
         },
         'prop_spawn_time': 5,
+    },
+    'hard': {
+        'enemy_spawn_time': 1.3,
+        'enemy_health': {
+            'enemy_1': 6,
+            'enemy_2': 10,
+        },
+        'total_enemy': 80,
+
+        'boss_spawn_time': 120,
+        'boss_health': {
+            'boss_1': 120,
+        },
+        'prop_spawn_time': 10,
     }
 }

@@ -45,6 +45,8 @@ client_nickname = ''
 client_ip = 'localhost'
 # 默认连接端口
 client_port = 11451
+# 游戏客户端选择的难度
+client_difficulty = 'easy'
 
 
 def redraw(window, game: 'base.Game'):
@@ -288,6 +290,8 @@ class MainMenu:
         # 初始化飞机类型选择选项卡
         self.plane_selector = self.menu.add.selector('Type :', [('Yellow', 1), ('Blue', 2)],
                                                      onchange=self.__update_texture)
+        self.difficulty_selector = self.menu.add.selector('Difficulty:', [('easy', 1), ('hard', 2)],
+                                                          onchange=self.__update_difficulty)
         # 初始化ip输入框
         self.ip_input = self.menu.add.text_input('IP address :', default=client_ip, onchange=self.__update_ip_address)
         # 初始化端口输入框
@@ -356,6 +360,12 @@ class MainMenu:
     #     print(mode)
     #     self.mode = mode
     #     host_or_join = mode
+    def __update_difficulty(self, select, value: int):
+        global client_difficulty
+        if value == 1:
+            client_difficulty = 'easy'
+        elif value == 2:
+            client_difficulty = 'hard'
 
     def mainloop(self):
         """
@@ -463,7 +473,8 @@ def main_game():
             'pos': p.get_pos(),
             'bullet': control_report['is_shooting'],
             'pause': control_report['need_pause'],
-            'restart': ck.R
+            'restart': ck.R,
+            'difficulty': client_difficulty,
         }
         # 如果要重新开始游戏，由于游戏开始默认暂停，因此首先重置Player对象，同时暂停BGM的播放
         if ck.R == True:
@@ -516,6 +527,7 @@ def main_game():
             client_audio.pause_BGM()
 
             # 显示游戏失败覆盖层
+            # TODO: 美化UI
             draw_lose_screen(win, reply.players[ID].game_score)
             redraw(win, reply)
 

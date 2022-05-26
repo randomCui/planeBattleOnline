@@ -19,7 +19,7 @@ def client_thread(connection, game_id, player_id):
     """
 
     # 从客户端传来的玩家对象设置
-    player_attr = pickle.loads(connection.recv(2048 * 10))
+    player_attr = pickle.loads(connection.recv(2048 * 50))
     # 初始化出生点
     player_attr['basic_setting']['x'] = 200
     player_attr['basic_setting']['y'] = window_height - 100
@@ -58,7 +58,7 @@ def client_thread(connection, game_id, player_id):
     while True:
         try:
             # 接收客户端发送过来的数据
-            data = pickle.loads(connection.recv(2048 * 10))
+            data = pickle.loads(connection.recv(2048 * 50))
             # 如果当前玩家还没有死，就响应他的操作
             if current_player.state != 'dead':
                 # 改变对象位置
@@ -76,12 +76,19 @@ def client_thread(connection, game_id, player_id):
                         # 记录提出暂停的玩家id
                         current_game.pause_owner = player_id
                         # 设置游戏状态为暂停
-                        current_game.state = 'pause'
+                        if current_game.state != 'win':
+                            current_game.state = 'pause'
                     else:
                         # 恢复游戏运行状态
-                        current_game.state = 'running'
+                        if current_game.state != 'win':
+                            current_game.state = 'running'
                         # 清空提出暂停的玩家记录
                         current_game.pause_owner = ''
+
+            # 玩家首次进入设置难度，之后难度锁定
+            if not current_game.difficult_lock:
+                current_game.difficult = data['difficulty']
+                current_game.difficult_lock = True
 
             # 如果玩家提出重新开始
             if data['restart'] == True:
@@ -171,6 +178,7 @@ def game_thread(games, game_id):
             time.sleep(0.2)
         # 如果游戏赢了或输了，那么就不更新游戏
         elif games[game_id].state == 'win' or games[game_id].state == 'lose':
+            games[game_id].sound_list = []
             time.sleep(1)
         # 如果游戏已经停止运行，那么就将本局游戏从所有游戏中移除，并且停止负责本局游戏更新的线程
         elif games[game_id].state == 'stopped':

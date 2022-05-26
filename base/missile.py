@@ -7,14 +7,14 @@ class Missile(Bullet):
     导弹对象
     """
     def __init__(self, **properties):
+        # 因为导弹可以被拦截，因此有生命值
+        self.health = 0
         # 将参数传递给上一级
         super().__init__(
             basic_setting=properties['basic_setting'],
             inertia_setting=properties['inertia_setting'],
             bullet_setting=properties['missile_setting'],
         )
-        # 因为导弹可以被拦截，因此有生命值
-        self.health = 0
         self.target_object = properties['missile_setting']['target_object']
         # 导弹的动力段时间
         self.life_time = properties['missile_setting']['life_time']

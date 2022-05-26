@@ -56,7 +56,7 @@ class Network:
 
     def receive(self):
         # 从服务器得到数据，使用pickle解包
-        return pickle.loads(self.client.recv(2048 * 10))
+        return pickle.loads(self.client.recv(2048 * 50))
 
     def disconnect(self):
         # 从服务器断开连接

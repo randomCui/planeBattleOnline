@@ -50,6 +50,7 @@ class Game:
         self.pause_owner = ''
 
         # 游戏难度
+        self.difficult_lock = False
         self.difficult = difficulty
 
         # 游戏开始时间，用于游戏中计时器的操作
@@ -66,14 +67,18 @@ class Game:
         self.timer = {
             'game_tick': 0,
             'enemy_spawn': 0,
-            'boss_spawn': 100,
-            'prop_spawn': 10,
+            'boss_spawn': 0,
+            'prop_spawn': 0,
         }
 
         # 敌人数量计数器，用于控制敌人生成
         self.item_counter = {
             'enemy': 30,
             'boss': 1
+        }
+        self.item_left_counter = {
+            'enemy': 30,
+            'boss': 1,
         }
 
         # 每局游戏对应的背景应该播放到的帧数
@@ -96,6 +101,8 @@ class Game:
         if self.timer['enemy_spawn'] > setting[self.difficult]['enemy_spawn_time'] and self.item_counter['enemy'] != 0:
             # 将生成间隔定时器清零
             self.timer['enemy_spawn'] = 0
+            # 将应该生成的敌人数量-1
+            self.item_counter['enemy'] -= 1
             # 随机从两种类型的敌机中选择一种
             ch = random.randint(1, 2)
             temp = None
@@ -151,8 +158,10 @@ class Game:
         if pos == (0, 0):
             # 随机生成在屏幕的上1/3部分
             pos = self.random.randint(0, window_width - 100), 30
-        if self.timer['boss_spawn'] > setting[self.difficult]['boss_spawn_time'] and self.item_counter['boss'] != 0:
+        if (self.timer['boss_spawn'] > setting[self.difficult]['boss_spawn_time'] or self.item_counter['enemy'] < 10)\
+                and self.item_counter['boss'] != 0:
             self.timer['boss_spawn'] = 0
+            self.item_counter['boss'] -= 1
             ch = random.randint(1, 1)
             temp = None
             if ch == 1:
@@ -470,7 +479,7 @@ class Game:
                 self.animation['enemy_explosion'].append(temp)
 
                 # 给生成敌人数-1
-                self.item_counter['enemy'] -= 1
+                self.item_left_counter['enemy'] -= 1
                 # 添加音效
                 self.sound_list.append('death')
 
@@ -483,7 +492,7 @@ class Game:
                 # 如果死亡，就添加死亡动画
                 temp = Animation(boss.get_center(), (0, 0), 'explosion1')
                 # 给生成敌人数-1
-                self.item_counter['boss'] -= 1
+                self.item_left_counter['boss'] -= 1
                 # 添加音效
                 self.animation['enemy_explosion'].append(temp)
 
@@ -570,6 +579,10 @@ class Game:
             if value != 0:
                 enemy_left = True
                 break
+        if len(self.enemies) > 0:
+            enemy_left = True
+        if len(self.bosses) > 0:
+            enemy_left = True
 
         # 如果所有敌人都被消灭，那么说明本局游戏胜利
         if not enemy_left:
