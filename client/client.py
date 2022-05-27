@@ -29,10 +29,10 @@ pygame.mixer.init()
 
 # 初始化需要使用到的字体
 title_font = pygame.font.SysFont("黑体", 30)
-score_font = pygame.font.SysFont("arial", 30)
-pause_font = pygame.font.SysFont("arial", 70)
-sub_pause_font = pygame.font.SysFont("arial", 40)
-nickname_font = pygame.font.SysFont("calibri", 30)
+upper_font = pygame.font.SysFont("黑体", size=50)
+pause_font = pygame.font.SysFont("黑体", 70)
+sub_pause_font = pygame.font.SysFont("黑体", 40)
+nickname_font = pygame.font.SysFont("arial", 40)
 
 # 初始化客户端信息
 # client_number = 0
@@ -64,8 +64,6 @@ def redraw(window, game: 'base.Game'):
     draw_global_animate(window, game.animation)
     draw_bosses(window, game.bosses)
     draw_props(window, game.props)
-
-    pygame.display.update()
 
 
 def draw_props(window, props: list):
@@ -153,7 +151,7 @@ def draw_players(window, players: dict):
         window.blit(title_label, (player.get_center()[0] - title_label.get_width() / 2, player.y - 30))
 
 
-def draw_ui(window, score):
+def draw_ui(window, score, enemy_left):
     """
 
     :param window: 用于显示的pygame surface
@@ -161,8 +159,11 @@ def draw_ui(window, score):
     :return:
     """
     score_text = 'Score: ' + str(score)
-    title_score = pause_font.render(score_text, True, (255, 255, 255))
-    window.blit(title_score, (width - title_score.get_width(), 0))
+    title_score = upper_font.render(score_text, True, (255, 255, 255))
+    window.blit(title_score, (width - title_score.get_width()-20, 20))
+    enemy_remain_text = 'Enemy left: '+str(enemy_left)
+    enemy_remain = upper_font.render(enemy_remain_text, True, (255,255,255))
+    window.blit(enemy_remain, (20, 20))
 
 
 def draw_pause_window(window):
@@ -186,7 +187,7 @@ def draw_win_screen(window, score):
     :return:
     """
     # window.fill(255, 255, 255)
-    title_pause = pause_font.render("You Win", True, (255, 255, 255))
+    title_pause = pause_font.render("You Win", True, (210, 50, 50))
     window.blit(title_pause, (width / 2 - title_pause.get_width() / 2, 250))
     hint = "Your score is: " + str(score)
     title_pause = sub_pause_font.render(hint, True, (255, 255, 255))
@@ -202,7 +203,7 @@ def draw_lose_screen(window, score):
     :return:
     """
     # window.fill(255, 255, 255)
-    title_pause = pause_font.render("You Lose", True, (255, 255, 255))
+    title_pause = pause_font.render("You Lose", True, (210, 50, 50))
     window.blit(title_pause, (width / 2 - title_pause.get_width() / 2, 250))
     hint = "Your score is: " + str(score)
     title_pause = sub_pause_font.render(hint, True, (255, 255, 255))
@@ -502,8 +503,9 @@ def main_game():
             if old_state != 'running':
                 client_audio.unpause_BGM()
 
-            draw_ui(win, reply.players[ID].game_score)
             redraw(win, reply)
+            draw_ui(win, reply.players[ID].game_score, reply.item_counter['enemy'])
+            pygame.display.update()
         elif game_state == 'pause':
             # 如果上次更新时不是暂停状态，再切换BGM播放状态，防止BGM播放状态一直切换
             if old_state != 'pause':
@@ -511,25 +513,27 @@ def main_game():
             client_audio.pause_BGM()
 
             draw_pause_window(win)
-            draw_ui(win, reply.players[ID].game_score)
             redraw(win, reply)
+            draw_ui(win, reply.players[ID].game_score, reply.item_counter['enemy'])
+            pygame.display.update()
         elif game_state == 'win':
             # 如果本局游戏胜利
             # 暂停BGM播放
             client_audio.pause_BGM()
 
+            redraw(win, reply)
             # 显示游戏胜利覆盖层
             draw_win_screen(win, reply.players[ID].game_score)
-            redraw(win, reply)
+            pygame.display.update()
         if game_state == 'lose':
             # 如果本局游戏失败
             # 暂停BGM播放
             client_audio.pause_BGM()
 
-            # 显示游戏失败覆盖层
-            # TODO: 美化UI
-            draw_lose_screen(win, reply.players[ID].game_score)
             redraw(win, reply)
+            # 显示游戏失败覆盖层
+            draw_lose_screen(win, reply.players[ID].game_score)
+            pygame.display.update()
 
 
 if __name__ == '__main__':

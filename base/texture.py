@@ -27,9 +27,9 @@ class Texture:
                                          (width, height)
                                          ),
             'ENERGY_BALL': pygame.image.load(os.path.join("..", "assets", "energy_ball.png")),
-            'BOSS_1': pygame.image.load(os.path.join("..", "assets", "boss.png")),
+            'BOSS_1': pygame.image.load(os.path.join("..", "assets", "boss_1.png")),
             'HEALTH_UP': pygame.image.load(os.path.join("..", "assets", "HEALTH_UP.png")),
-            'DAMAGE_UP': pygame.image.load(os.path.join("..", "assets", "tool_kit.png")),
+            'BULLET_UP': pygame.image.load(os.path.join("..", "assets", "tool_kit.png")),
             'SHOOTING_SPEED_UP': pygame.image.load(os.path.join("..", "assets", "tool_kit.png")),
         }
         self.menu = {

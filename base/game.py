@@ -158,7 +158,7 @@ class Game:
         if pos == (0, 0):
             # 随机生成在屏幕的上1/3部分
             pos = self.random.randint(0, window_width - 100), 30
-        if (self.timer['boss_spawn'] > setting[self.difficult]['boss_spawn_time'] or self.item_counter['enemy'] < 10)\
+        if (self.timer['boss_spawn'] > setting[self.difficult]['boss_spawn_time'] or self.item_counter['enemy'] < 6)\
                 and self.item_counter['boss'] != 0:
             self.timer['boss_spawn'] = 0
             self.item_counter['boss'] -= 1
@@ -173,7 +173,7 @@ class Game:
                         'texture_name': 'BOSS_1'
                     },
                     inertia_setting={
-                        'max_speed': 0.5
+                        'max_speed': 2
                     },
                     plane_setting={
                         'health': setting[self.difficult]['boss_health']['boss_1']
@@ -266,8 +266,12 @@ class Game:
             flag, b = enemy.shoot(self.players)
             # 如果成功发射了子弹
             if flag:
-                # 将子弹添加到子弹列表中
-                self.hostile_bullets.append(b)
+                # 如果是单个子弹，将子弹添加到子弹列表中，如果返回的是一个列表，就逐个添加
+                if isinstance(b, list):
+                    for bullet in b:
+                        self.hostile_bullets.append(bullet)
+                else:
+                    self.hostile_bullets.append(b)
 
     def boss_shoot(self):
         # 尝试让Boss对象射击
@@ -286,8 +290,12 @@ class Game:
             flag, b = value.shoot()
             # 如果成功发射了子弹
             if flag:
-                # 将子弹添加到子弹列表中
-                self.friendly_bullets.append(b)
+                # 如果是单个子弹，将子弹添加到子弹列表中，如果返回的是一个列表，就逐个添加
+                if isinstance(b, list):
+                    for bullet in b:
+                        self.friendly_bullets.append(bullet)
+                else:
+                    self.friendly_bullets.append(b)
                 # 增加音效
                 self.sound_list.append('player_shoot')
 
@@ -447,8 +455,8 @@ class Game:
     def prop_make_effect(prop, player):
         if prop.type == PropType.HEALTH_UP:
             player.hit(-1)
-        if prop.type == PropType.DAMAGE_UP:
-            player.damage_factor *= 1.2
+        if prop.type == PropType.BULLET_UP:
+            player.shooting_pattern = 'shotgun'
         if prop.type == PropType.SHOOTING_SPEED_UP:
             player.fire_cool_down_frame *= 0.8
 

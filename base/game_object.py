@@ -65,7 +65,7 @@ class GameObject:
         window.blit(rotated_image, rotated_image_rect)
 
         # draw rectangle around the image
-        pygame.draw.rect(window, (255, 0, 0), (*rotated_image_rect.topleft, *rotated_image.get_size()), 2)
+        # pygame.draw.rect(window, (255, 0, 0), (*rotated_image_rect.topleft, *rotated_image.get_size()), 2)
 
     def update(self):
         self.x += self.vx

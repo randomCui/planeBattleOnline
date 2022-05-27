@@ -24,6 +24,9 @@ class Player(Plane):
         # 每个玩家对象上的防卫激光数量
         self.defense_laser = []
 
+        # 射击方式，是连射还是散射
+        self.shooting_pattern = 'rapid'
+
         # 将参数继续传向基类
         super().__init__(basic_setting=properties['basic_setting'],
                          inertia_setting=properties['inertia_setting'],
@@ -47,26 +50,51 @@ class Player(Plane):
             if self.last_fire > self.fire_cool_down_frame:
                 # 进行下一次开火
                 self.last_fire = 0
-                # 生成一个子弹
-                temp = BulletSimple(
-                    basic_setting={
-                        'x': self.get_center()[0] - t.lib['RED_LASER'].get_size()[0] / 2,
-                        'y': self.get_center()[1] - t.lib['RED_LASER'].get_size()[1] / 2,
-                        'size': t.lib['RED_LASER'].get_size(),
-                        'texture_name': 'RED_LASER',
-                    },
-                    inertia_setting={
-                        'max_speed': 5,
-                    },
-                    bullet_setting={
-                        'damage': 4 * self.damage_factor,
-                        'belonging': self
-                    },
-                )
-                # 初始化子弹的移动
-                temp.init_shoot_move((0, -5))
-                # 返回是否生成了子弹，已经生成的子弹对象
-                return True, temp
+                if self.shooting_pattern == 'rapid':
+                    # 生成一个子弹
+                    temp = BulletSimple(
+                        basic_setting={
+                            'x': self.get_center()[0] - t.lib['RED_LASER'].get_size()[0] / 2,
+                            'y': self.get_center()[1] - t.lib['RED_LASER'].get_size()[1] / 2,
+                            'size': t.lib['RED_LASER'].get_size(),
+                            'texture_name': 'RED_LASER',
+                        },
+                        inertia_setting={
+                            'max_speed': 5,
+                        },
+                        bullet_setting={
+                            'damage': 4 * self.damage_factor,
+                            'belonging': self
+                        },
+                    )
+                    # 初始化子弹的移动
+                    temp.init_shoot_move((0, -5))
+                    # 返回是否生成了子弹，已经生成的子弹对象
+                    return True, temp
+                elif self.shooting_pattern == 'shotgun':
+                    # 生成一簇
+                    bullet_list = []
+                    for i in range(0, 3):
+                        temp = BulletSimple(
+                            basic_setting={
+                                'x': self.get_center()[0] - t.lib['RED_LASER'].get_size()[0] / 2 + (i-1)*20,
+                                'y': self.get_center()[1] - t.lib['RED_LASER'].get_size()[1] / 2,
+                                'size': t.lib['RED_LASER'].get_size(),
+                                'texture_name': 'RED_LASER',
+                            },
+                            inertia_setting={
+                                'max_speed': 5,
+                            },
+                            bullet_setting={
+                                'damage': 4 * self.damage_factor,
+                                'belonging': self
+                            },
+                        )
+                        # 初始化子弹的移动
+                        temp.init_shoot_move(((i-1)*0.5, -5))
+                        bullet_list.append(temp)
+                    # 返回是否生成了子弹，已经生成的子弹对象
+                    return True, bullet_list
         # 如果没有开火，就将冷却帧+1
         self.last_fire += 1
         # 返回没有生成子弹的表示

@@ -8,7 +8,7 @@ class PropType(Enum):
     枚举类型，表示不同的道具种类
     """
     HEALTH_UP = 1
-    DAMAGE_UP = 2
+    BULLET_UP = 2
     SHOOTING_SPEED_UP = 3
 
 
