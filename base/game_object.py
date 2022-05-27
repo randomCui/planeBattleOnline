@@ -59,7 +59,7 @@ class GameObject:
 
         # 得到旋转之后的图片
         rotated_image = pygame.transform.rotate(self.texture, self.angle)
-        rotated_image_rect = rotated_image.get_rect(topleft=(self.x,self.y),center=rotated_image_center)
+        rotated_image_rect = rotated_image.get_rect(topleft=(self.x, self.y), center=rotated_image_center)
 
         # rotate and blit the image
         window.blit(rotated_image, rotated_image_rect)

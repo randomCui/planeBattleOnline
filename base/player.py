@@ -77,7 +77,7 @@ class Player(Plane):
                     for i in range(0, 3):
                         temp = BulletSimple(
                             basic_setting={
-                                'x': self.get_center()[0] - t.lib['RED_LASER'].get_size()[0] / 2 + (i-1)*20,
+                                'x': self.get_center()[0] - t.lib['RED_LASER'].get_size()[0] / 2 + (i - 1) * 20,
                                 'y': self.get_center()[1] - t.lib['RED_LASER'].get_size()[1] / 2,
                                 'size': t.lib['RED_LASER'].get_size(),
                                 'texture_name': 'RED_LASER',
@@ -91,7 +91,7 @@ class Player(Plane):
                             },
                         )
                         # 初始化子弹的移动
-                        temp.init_shoot_move(((i-1)*0.5, -5))
+                        temp.init_shoot_move(((i - 1) * 0.5, -5))
                         bullet_list.append(temp)
                     # 返回是否生成了子弹，已经生成的子弹对象
                     return True, bullet_list

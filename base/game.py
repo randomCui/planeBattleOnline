@@ -1,18 +1,18 @@
-import pygame
 import random
 import sys
 import time
 
+import pygame
+
 sys.path.append('../base')
 
 from base.config import setting, window_height, window_width, frame_rate
-from base.enemy import EnemyType1, EnemyType2, EnemyType3
+from base.enemy import EnemyType2, EnemyType3
 from base.missile import Missile
 from base.boss import BossType1
 from base.prop import Prop, PropType
 from base.animation import Animation
 from base.shared_lib import t
-from base.score import add_score
 from util import out_of_screen, distance_between
 
 
@@ -158,7 +158,7 @@ class Game:
         if pos == (0, 0):
             # 随机生成在屏幕的上1/3部分
             pos = self.random.randint(0, window_width - 100), 30
-        if (self.timer['boss_spawn'] > setting[self.difficult]['boss_spawn_time'] or self.item_counter['enemy'] < 6)\
+        if (self.timer['boss_spawn'] > setting[self.difficult]['boss_spawn_time'] or self.item_counter['enemy'] < 6) \
                 and self.item_counter['boss'] != 0:
             self.timer['boss_spawn'] = 0
             self.item_counter['boss'] -= 1
@@ -477,7 +477,6 @@ class Game:
     def instant_die(plane_obj):
         plane_obj.health = 0
 
-
     def enemy_die_detection(self):
         # 判断游戏中的对象是否死亡
         for enemy in self.enemies:
@@ -606,11 +605,11 @@ class Game:
             self.background_frame_counter = 0
             # 根据正向播放还是反向播放来更新帧数
             if not self.reverse:
-                self.background_frame+=1
+                self.background_frame += 1
             else:
-                self.background_frame-=1
+                self.background_frame -= 1
             # 如果帧数要越界
-            if self.background_frame<=0 or self.background_frame >= 42:
+            if self.background_frame <= 0 or self.background_frame >= 42:
                 # 将播放方向反相
                 if self.reverse:
                     self.reverse = False

@@ -160,9 +160,9 @@ def draw_ui(window, score, enemy_left):
     """
     score_text = 'Score: ' + str(score)
     title_score = upper_font.render(score_text, True, (255, 255, 255))
-    window.blit(title_score, (width - title_score.get_width()-20, 20))
-    enemy_remain_text = 'Enemy left: '+str(enemy_left)
-    enemy_remain = upper_font.render(enemy_remain_text, True, (255,255,255))
+    window.blit(title_score, (width - title_score.get_width() - 20, 20))
+    enemy_remain_text = 'Enemy left: ' + str(enemy_left)
+    enemy_remain = upper_font.render(enemy_remain_text, True, (255, 255, 255))
     window.blit(enemy_remain, (20, 20))
 
 
